@@ -208,6 +208,55 @@
   .stat-card .stat-row.winner.messi-win .num{color:var(--messi-bg1)}
   .stat-card .stat-row.winner .crown{margin-left:4px;display:inline-block;animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both}
 
+  .top-panels{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+  @media (max-width:720px){.top-panels{grid-template-columns:1fr}}
+  .panel-card{background:var(--panel);border-radius:16px;padding:16px 18px;border:1px solid rgba(255,255,255,.06)}
+  .panel-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;gap:8px}
+  .panel-title{font-size:.88rem;font-weight:800;white-space:nowrap}
+  .panel-sub{font-size:.66rem;color:var(--muted);text-align:right}
+  .panel-more{margin-top:8px;width:100%;background:var(--panel2);color:var(--text);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:7px;font-size:.72rem;font-weight:700;cursor:pointer;transition:background .15s ease}
+  .panel-more:hover{background:#262b3d}
+
+  .trivia-msg{color:var(--muted);font-size:.8rem;margin-bottom:2px;text-align:center}
+  .trivia-progress{font-size:.72rem;color:var(--muted);font-weight:600;margin-bottom:8px;text-align:center}
+  .trivia-question{font-size:.88rem;font-weight:700;margin-bottom:12px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px}
+  .trivia-q-icon{font-size:1.05rem}
+  .trivia-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .trivia-opt{
+    border-radius:10px;padding:10px 8px;cursor:pointer;font-weight:800;font-size:.8rem;
+    background:var(--panel2);color:var(--text);border:1px solid rgba(255,255,255,.08);transition:transform .15s ease, background .2s ease;
+  }
+  .trivia-opt:hover:not(:disabled){transform:translateY(-2px);background:#262b3d}
+  .trivia-opt:disabled{cursor:default}
+  .trivia-opt.correct{background:linear-gradient(135deg,#1f7a3d,#2fae5c);color:#fff}
+  .trivia-opt.wrong{background:linear-gradient(135deg,#7a1f2b,#ae2f3f);color:#fff}
+  .trivia-final{text-align:center;font-size:.82rem;margin-bottom:10px}
+  .trivia-saving{margin-top:8px;font-size:.68rem;color:var(--muted);text-align:center}
+  #triviaResult{text-align:center}
+  #triviaGate{text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+
+  .ranking-row{display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid rgba(255,255,255,.05);font-size:.8rem}
+  .ranking-row:last-child{border-bottom:none}
+  .ranking-pos{width:20px;text-align:center;font-weight:800;font-size:.8rem;color:var(--muted)}
+  .ranking-photo{width:22px;height:22px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.15)}
+  .ranking-photo-placeholder{display:flex;align-items:center;justify-content:center;background:var(--panel2);font-size:.75rem}
+  .ranking-name{flex:1;font-weight:700;font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ranking-score{font-weight:800;font-size:.78rem;color:var(--cr7-accent)}
+  .ranking-empty{color:var(--muted);font-size:.78rem;text-align:center;padding:6px 0}
+
+  .ranking-modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;
+    align-items:center;justify-content:center;padding:20px;
+  }
+  .ranking-modal-overlay.open{display:flex}
+  .ranking-modal{background:var(--panel);border-radius:16px;max-width:420px;width:100%;max-height:80vh;display:flex;flex-direction:column;border:1px solid rgba(255,255,255,.1)}
+  .ranking-modal-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08);font-weight:800;font-size:.95rem}
+  .ranking-modal-close{background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;line-height:1}
+  .ranking-modal-close:hover{color:var(--text)}
+  .ranking-modal-list{overflow-y:auto;padding:8px 18px 18px}
+  .ranking-modal-list .ranking-row{font-size:.85rem;padding:8px 2px}
+  .ranking-modal-list .ranking-photo{width:26px;height:26px}
+
   footer{text-align:center;padding:30px 20px 60px;color:var(--muted);font-size:.8rem;line-height:1.7}
   footer a{color:var(--muted)}
   .badge-auto{
@@ -252,6 +301,40 @@
     </div>
     <div class="vote-bar"><div class="vb-fill-m" id="voteBarMessi"></div><div class="vb-fill-c" id="voteBarCristiano"></div></div>
     <div class="vote-status" id="voteStatus">Cargando votos...</div>
+  </div>
+
+  <div class="top-panels reveal">
+    <div class="panel-card">
+      <div class="panel-head">
+        <span class="panel-title">🏆 Ranking de fans</span>
+        <span class="panel-sub">top 10 · en vivo</span>
+      </div>
+      <div id="rankingList">Cargando ranking...</div>
+      <button class="panel-more" id="rankingMoreBtn" type="button" style="display:none">Ver ranking completo</button>
+    </div>
+    <div class="panel-card">
+      <div class="panel-head">
+        <span class="panel-title">🧠 Trivia</span>
+        <span class="panel-sub">inicia sesión para jugar</span>
+      </div>
+      <div id="triviaGate"></div>
+      <div id="triviaGame" style="display:none">
+        <div class="trivia-progress" id="triviaProgress"></div>
+        <div class="trivia-question" id="triviaQuestion"></div>
+        <div class="trivia-options" id="triviaOptions"></div>
+      </div>
+      <div id="triviaResult" style="display:none"></div>
+    </div>
+  </div>
+
+  <div class="ranking-modal-overlay" id="rankingModalOverlay">
+    <div class="ranking-modal">
+      <div class="ranking-modal-head">
+        <span>🏆 Ranking completo de fans</span>
+        <button class="ranking-modal-close" id="rankingModalClose" type="button">✕</button>
+      </div>
+      <div id="rankingModalList" class="ranking-modal-list">Cargando...</div>
+    </div>
   </div>
 
   <div class="section-title">
@@ -500,7 +583,7 @@ const FIREBASE_CONFIG = {
   appId: "1:624578731941:web:a0a54e168c83836a80524c"
 };
 
-function initVoting() {
+function initApp() {
   const voteMessiBtn = document.getElementById('voteMessiBtn');
   const voteCristianoBtn = document.getElementById('voteCristianoBtn');
   const voteStatus = document.getElementById('voteStatus');
@@ -509,6 +592,18 @@ function initVoting() {
   const voteBarMessiEl = document.getElementById('voteBarMessi');
   const voteBarCristianoEl = document.getElementById('voteBarCristiano');
   const voteAuthEl = document.getElementById('voteAuth');
+
+  const triviaGateEl = document.getElementById('triviaGate');
+  const triviaGameEl = document.getElementById('triviaGame');
+  const triviaProgressEl = document.getElementById('triviaProgress');
+  const triviaQuestionEl = document.getElementById('triviaQuestion');
+  const triviaOptionsEl = document.getElementById('triviaOptions');
+  const triviaResultEl = document.getElementById('triviaResult');
+  const rankingListEl = document.getElementById('rankingList');
+  const rankingMoreBtn = document.getElementById('rankingMoreBtn');
+  const rankingModalOverlay = document.getElementById('rankingModalOverlay');
+  const rankingModalClose = document.getElementById('rankingModalClose');
+  const rankingModalList = document.getElementById('rankingModalList');
 
   let firebaseOk = false;
   try {
@@ -522,6 +617,8 @@ function initVoting() {
     voteStatus.textContent = 'La votación en vivo no está disponible ahora mismo.';
     voteMessiBtn.disabled = true;
     voteCristianoBtn.disabled = true;
+    triviaGateEl.textContent = 'La trivia no está disponible ahora mismo.';
+    rankingListEl.textContent = 'El ranking no está disponible ahora mismo.';
     return;
   }
 
@@ -648,9 +745,198 @@ function initVoting() {
   voteMessiBtn.addEventListener('click', () => castVote('messi'));
   voteCristianoBtn.addEventListener('click', () => castVote('cristiano'));
 
+  // --- Trivia: ¿cuánto sabes? (requiere sesión iniciada) ---
+  function buildQuestions() {
+    const list = [];
+    DATA.stats.forEach((s) => {
+      if (s.messi === s.ronaldo) return;
+      list.push({
+        text: `¿Quién tiene más "${s.label}"?`,
+        icon: s.icon,
+        correct: s.messi > s.ronaldo ? 'messi' : 'ronaldo',
+        messiVal: s.messi,
+        ronaldoVal: s.ronaldo,
+        compact: !!s.compact
+      });
+    });
+    if (DATA.messi.total !== DATA.ronaldo.total) {
+      list.push({
+        text: '¿Quién anotó más goles en total en su carrera?',
+        icon: '⚽',
+        correct: DATA.messi.total > DATA.ronaldo.total ? 'messi' : 'ronaldo',
+        messiVal: DATA.messi.total,
+        ronaldoVal: DATA.ronaldo.total,
+        compact: false
+      });
+    }
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+    return list;
+  }
+
+  let triviaQuestions = [];
+  let triviaIndex = 0;
+  let triviaScore = 0;
+  let triviaAnswered = false;
+
+  function fmtVal(n, compact) {
+    return compact ? formatCompact(n) : n.toLocaleString('es-ES');
+  }
+
+  function renderTriviaGate() {
+    if (currentUser) {
+      triviaGateEl.style.display = 'none';
+      triviaResultEl.style.display = 'none';
+      triviaGameEl.style.display = '';
+      if (triviaQuestions.length === 0) startTrivia();
+    } else {
+      triviaGateEl.style.display = '';
+      triviaGameEl.style.display = 'none';
+      triviaResultEl.style.display = 'none';
+      triviaQuestions = [];
+      triviaGateEl.innerHTML = `
+        <p class="trivia-msg">Inicia sesión con Google (arriba) para jugar la trivia y aparecer en el ranking de fans.</p>
+        <button class="signin-btn" id="triviaSignInBtn" type="button">Iniciar sesión con Google</button>`;
+      const btn = document.getElementById('triviaSignInBtn');
+      if (btn) btn.addEventListener('click', () => auth.signInWithPopup(provider).catch((err) => console.error('Error al iniciar sesión', err)));
+    }
+  }
+
+  function startTrivia() {
+    triviaQuestions = buildQuestions();
+    triviaIndex = 0;
+    triviaScore = 0;
+    triviaResultEl.style.display = 'none';
+    triviaGameEl.style.display = '';
+    renderTriviaQuestion();
+  }
+
+  function renderTriviaQuestion() {
+    triviaAnswered = false;
+    const q = triviaQuestions[triviaIndex];
+    triviaProgressEl.textContent = `Pregunta ${triviaIndex + 1} de ${triviaQuestions.length} · puntaje: ${triviaScore}`;
+    triviaQuestionEl.innerHTML = `<span class="trivia-q-icon">${q.icon}</span> ${q.text}`;
+    triviaOptionsEl.innerHTML = `
+      <button class="trivia-opt" data-team="messi" type="button">Messi</button>
+      <button class="trivia-opt" data-team="ronaldo" type="button">Cristiano</button>
+    `;
+    triviaOptionsEl.querySelectorAll('.trivia-opt').forEach((btn) => {
+      btn.addEventListener('click', () => answerTrivia(btn.dataset.team));
+    });
+  }
+
+  function answerTrivia(team) {
+    if (triviaAnswered) return;
+    triviaAnswered = true;
+    const q = triviaQuestions[triviaIndex];
+    const correct = team === q.correct;
+    if (correct) triviaScore++;
+
+    triviaOptionsEl.querySelectorAll('.trivia-opt').forEach((btn) => {
+      btn.disabled = true;
+      if (btn.dataset.team === q.correct) btn.classList.add('correct');
+      else if (btn.dataset.team === team) btn.classList.add('wrong');
+    });
+
+    const detail = `Messi: ${fmtVal(q.messiVal, q.compact)} · Cristiano: ${fmtVal(q.ronaldoVal, q.compact)}`;
+    triviaProgressEl.textContent = (correct ? '✅ ¡Correcto! ' : '❌ Incorrecto. ') + detail;
+
+    setTimeout(() => {
+      triviaIndex++;
+      if (triviaIndex < triviaQuestions.length) {
+        renderTriviaQuestion();
+      } else {
+        finishTrivia();
+      }
+    }, 1400);
+  }
+
+  function finishTrivia() {
+    triviaGameEl.style.display = 'none';
+    triviaResultEl.style.display = '';
+    triviaResultEl.innerHTML = `
+      <p class="trivia-final">Terminaste con <strong>${triviaScore} de ${triviaQuestions.length}</strong> respuestas correctas.</p>
+      <button class="signin-btn" id="triviaRetryBtn" type="button">Jugar de nuevo</button>
+      <p class="trivia-saving" id="triviaSaving">Guardando tu puntaje...</p>
+    `;
+    document.getElementById('triviaRetryBtn').addEventListener('click', startTrivia);
+    saveTriviaScore(triviaScore, triviaQuestions.length);
+  }
+
+  function saveTriviaScore(score, total) {
+    if (!currentUser) return;
+    const uid = currentUser.uid;
+    const name = currentUser.displayName || currentUser.email || 'Fan anónimo';
+    const photo = currentUser.photoURL || '';
+    db.ref('fanScores/' + uid).transaction((current) => {
+      if (!current || score > current.score) {
+        return { name, photo, score, total, updatedAt: firebase.database.ServerValue.TIMESTAMP };
+      }
+      return current;
+    }).then(() => {
+      const savingEl = document.getElementById('triviaSaving');
+      if (savingEl) savingEl.textContent = 'Puntaje guardado. ¡Revisa el ranking abajo!';
+    }).catch((err) => {
+      console.error('Error guardando puntaje', err);
+      const savingEl = document.getElementById('triviaSaving');
+      if (savingEl) savingEl.textContent = 'No se pudo guardar tu puntaje.';
+    });
+  }
+
+  // --- Ranking de fans: público, visible sin necesidad de loguearse ---
+  const medals = ['🥇', '🥈', '🥉'];
+  function renderRankingRows(entries) {
+    if (entries.length === 0) {
+      return '<p class="ranking-empty">Todavía nadie jugó la trivia. ¡Sé el primero!</p>';
+    }
+    return entries.map((e, i) => `
+      <div class="ranking-row">
+        <span class="ranking-pos">${medals[i] || (i + 1)}</span>
+        ${e.photo ? `<img class="ranking-photo" src="${e.photo}" alt="">` : '<span class="ranking-photo ranking-photo-placeholder">🙂</span>'}
+        <span class="ranking-name">${e.name || 'Fan anónimo'}</span>
+        <span class="ranking-score">${e.score}/${e.total}</span>
+      </div>
+    `).join('');
+  }
+
+  let allFanEntries = [];
+
+  db.ref('fanScores').on('value', (snap) => {
+    const entries = [];
+    snap.forEach((child) => { entries.push(child.val()); });
+    entries.sort((a, b) => (b.score || 0) - (a.score || 0));
+    allFanEntries = entries;
+
+    rankingListEl.innerHTML = renderRankingRows(entries.slice(0, 10));
+    rankingMoreBtn.style.display = entries.length > 0 ? '' : 'none';
+
+    if (rankingModalOverlay.classList.contains('open')) {
+      rankingModalList.innerHTML = renderRankingRows(allFanEntries);
+    }
+  }, (err) => {
+    console.error('Error leyendo ranking', err);
+    rankingListEl.innerHTML = '<p class="ranking-empty">No se pudo cargar el ranking.</p>';
+  });
+
+  function openRankingModal() {
+    rankingModalList.innerHTML = renderRankingRows(allFanEntries);
+    rankingModalOverlay.classList.add('open');
+  }
+  function closeRankingModal() {
+    rankingModalOverlay.classList.remove('open');
+  }
+  rankingMoreBtn.addEventListener('click', openRankingModal);
+  rankingModalClose.addEventListener('click', closeRankingModal);
+  rankingModalOverlay.addEventListener('click', (e) => {
+    if (e.target === rankingModalOverlay) closeRankingModal();
+  });
+
   auth.onAuthStateChanged((user) => {
     currentUser = user;
     renderAuthUI();
+    renderTriviaGate();
 
     if (!user) {
       hasVoted = false;
@@ -679,7 +965,7 @@ function initVoting() {
   });
 }
 
-initVoting();
+initApp();
 
 // --- Animaciones de aparición al hacer scroll ---
 function setupScrollReveal() {
