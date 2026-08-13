@@ -150,19 +150,37 @@
   .vote-bar .vb-fill-c{background:linear-gradient(90deg,var(--cr7-accent),var(--cr7-bg1));transition:width .6s ease;width:50%}
   .vote-status{margin-top:8px;font-size:.72rem;color:var(--muted);text-align:center}
 
-  .vote-auth{display:flex;justify-content:center;margin-bottom:10px}
   .signin-btn{
     display:inline-flex;align-items:center;gap:8px;background:#fff;color:#3c4043;
     border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:7px 14px;
     font-size:.78rem;font-weight:600;cursor:pointer;transition:transform .15s ease, box-shadow .15s ease;
+    white-space:nowrap;
   }
   .signin-btn:hover{box-shadow:0 4px 14px rgba(0,0,0,.35);transform:translateY(-1px)}
-  .signin-btn svg{width:16px;height:16px}
+  .signin-btn svg{width:16px;height:16px;flex:none}
   .user-chip{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--muted)}
   .user-chip img{width:22px;height:22px;border-radius:50%;border:1px solid rgba(255,255,255,.25)}
   .user-chip .u-name{color:var(--text);font-weight:700}
   .user-chip .u-signout{color:var(--muted);text-decoration:underline;cursor:pointer;background:none;border:none;font-size:.75rem;padding:0;font-family:inherit}
   .user-chip .u-signout:hover{color:var(--text)}
+
+  /* Barra superior con logo y acceso de usuario, dentro del header */
+  .topbar{
+    position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;
+    max-width:1080px;margin:0 auto 22px;padding:0 2px;flex-wrap:wrap;
+    opacity:0;animation:fadeInUp .8s cubic-bezier(.16,1,.3,1) 0s both;
+  }
+  .topbar-brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:.95rem;letter-spacing:.03em;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.3)}
+  .topbar-auth{display:flex;align-items:center}
+  .topbar-auth .user-chip{color:rgba(255,255,255,.85)}
+  .topbar-auth .user-chip .u-name{color:#fff}
+  .topbar-auth .user-chip .u-signout{color:rgba(255,255,255,.65)}
+  .topbar-auth .user-chip .u-signout:hover{color:#fff}
+  .topbar-auth .user-chip img{border-color:rgba(255,255,255,.5)}
+  @media (max-width:520px){
+    .topbar{justify-content:center;text-align:center}
+    .topbar-brand{display:none}
+  }
 
   /* YouTube live subscribers */
   .yt-section{background:var(--panel);border-radius:20px;padding:26px 24px;border:1px solid rgba(255,255,255,.06)}
@@ -203,6 +221,10 @@
 <body>
 
 <header class="hero">
+  <div class="topbar">
+    <span class="topbar-brand">⚽ Messi vs Cristiano</span>
+    <div class="topbar-auth" id="voteAuth"></div>
+  </div>
   <h1>MESSI<span class="vs">VS</span>CRISTIANO</h1>
   <p class="tag">El duelo más grande del fútbol, siempre actualizado</p>
   <div class="leader-banner" id="leaderBanner"></div>
@@ -218,7 +240,6 @@
       <span class="vote-head-title">🗳️ ¿De qué equipo eres?</span>
       <span class="vote-head-sub"><span class="dot"></span>en vivo · un voto por persona</span>
     </div>
-    <div class="vote-auth" id="voteAuth"></div>
     <div class="vote-buttons">
       <button id="voteMessiBtn" class="vote-btn messi">
         <span class="vb-title">Team Messi</span>
