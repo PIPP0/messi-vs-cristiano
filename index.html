@@ -69,7 +69,7 @@
   button{transition:transform .15s ease}
   button:active{transform:scale(.96)}
 
-  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 24px}
+  .wrap{max-width:1760px;margin:0 auto;padding:28px 24px 24px}
 
   .section-title{display:flex;align-items:center;gap:10px;margin:32px 0 14px}
   .section-title h2{font-size:1.12rem;font-weight:800}
@@ -130,11 +130,42 @@
   .compare-track .m-fill{background:linear-gradient(90deg,var(--messi-bg2),var(--messi-bg1));transition:width 1s ease}
   .compare-track .c-fill{background:linear-gradient(90deg,var(--cr7-accent),var(--cr7-bg1));transition:width 1s ease}
 
-  /* Layout principal: contenido + barra lateral fija con ranking y trivia */
-  .page-grid{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
+  /* Layout principal: chat a la izquierda + contenido + ranking pegado a la derecha */
+  .page-grid{display:grid;grid-template-columns:280px 1fr 300px;gap:20px;align-items:start}
+  @media (max-width:1200px){.page-grid{grid-template-columns:1fr 300px}}
   @media (max-width:900px){.page-grid{grid-template-columns:1fr}}
   .side-col{display:flex;flex-direction:column;gap:14px;position:sticky;top:14px}
   @media (max-width:900px){.side-col{position:static}}
+  .chat-col{display:flex;flex-direction:column;position:sticky;top:14px;height:calc(100vh - 28px)}
+  @media (max-width:1200px){.chat-col{position:static;height:520px;order:99}}
+
+  /* Chat en vivo */
+  .chat-card{background:var(--panel);border-radius:14px;border:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;flex:1;overflow:hidden}
+  .chat-head{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .chat-title{font-size:.85rem;font-weight:800}
+  .chat-sub{font-size:.63rem;color:var(--muted)}
+  .chat-messages{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-height:0}
+  .chat-msg{display:flex;gap:7px;align-items:flex-start}
+  .chat-msg img{width:22px;height:22px;border-radius:50%;flex:none;margin-top:1px}
+  .chat-msg .chat-avatar-placeholder{width:22px;height:22px;border-radius:50%;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:.65rem;flex:none;margin-top:1px}
+  .chat-msg-body{min-width:0}
+  .chat-msg-name{font-size:.72rem;font-weight:800;color:var(--text)}
+  .chat-msg-time{font-size:.6rem;color:var(--muted);font-weight:500;margin-left:6px}
+  .chat-msg-text{font-size:.78rem;color:var(--text);line-height:1.35;word-break:break-word;margin-top:1px}
+  .chat-empty{color:var(--muted);font-size:.75rem;text-align:center;padding:16px 0}
+  .chat-input-row{display:flex;gap:6px;padding:10px 12px;border-top:1px solid rgba(255,255,255,.06)}
+  .chat-input{
+    flex:1;background:var(--panel2);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--text);
+    padding:8px 10px;font-size:.78rem;font-family:inherit;resize:none;
+  }
+  .chat-input:focus{outline:none;border-color:rgba(255,255,255,.3)}
+  .chat-send-btn{
+    background:linear-gradient(135deg,var(--messi-bg2),var(--messi-bg1));color:#fff;border:none;border-radius:8px;
+    padding:0 14px;font-weight:800;font-size:.78rem;cursor:pointer;flex:none;
+  }
+  .chat-send-btn:disabled{opacity:.5;cursor:default}
+  .chat-gate{padding:16px 14px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .chat-gate p{color:var(--muted);font-size:.76rem;line-height:1.4}
 
   /* Votación de hinchas (compacta) */
   .vote-section{background:var(--panel);border-radius:14px;padding:12px 16px;border:1px solid rgba(255,255,255,.06);margin-bottom:18px}
@@ -177,7 +208,7 @@
   /* Barra superior con logo y acceso de usuario, dentro del header */
   .topbar{
     position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;
-    max-width:1080px;margin:0 auto 14px;padding:0 2px;flex-wrap:wrap;
+    max-width:1760px;margin:0 auto 14px;padding:0 4px;flex-wrap:wrap;
     opacity:0;animation:fadeInUp .8s cubic-bezier(.16,1,.3,1) 0s both;
   }
   .topbar-brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:.95rem;letter-spacing:.03em;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.3)}
@@ -293,6 +324,34 @@
   </div>
 
   <div class="page-grid">
+    <aside class="chat-col reveal">
+      <div class="chat-card">
+        <div class="chat-head">
+          <span class="chat-title">💬 Chat en vivo</span>
+          <span class="chat-sub">en vivo</span>
+        </div>
+        <div id="chatMessages" class="chat-messages"><p class="chat-empty">Cargando chat...</p></div>
+        <div id="chatGate"></div>
+        <div id="chatInputRow" class="chat-input-row" style="display:none">
+          <textarea id="chatInput" class="chat-input" rows="1" maxlength="300" placeholder="Escribe un mensaje..."></textarea>
+          <button id="chatSendBtn" class="chat-send-btn" type="button">Enviar</button>
+        </div>
+      </div>
+      <div class="panel-card" style="margin-top:14px">
+        <div class="panel-head">
+          <span class="panel-title">🧠 Trivia</span>
+          <span class="panel-sub">inicia sesión para jugar</span>
+        </div>
+        <div id="triviaGate"></div>
+        <div id="triviaGame" style="display:none">
+          <div class="trivia-progress" id="triviaProgress"></div>
+          <div class="trivia-question" id="triviaQuestion"></div>
+          <div class="trivia-options" id="triviaOptions"></div>
+        </div>
+        <div id="triviaResult" style="display:none"></div>
+      </div>
+    </aside>
+
     <div class="main-col">
       <div class="vote-section reveal">
         <div class="vote-head">
@@ -420,19 +479,6 @@
         </div>
         <div id="rankingList">Cargando ranking...</div>
         <button class="panel-more" id="rankingMoreBtn" type="button" style="display:none">Ver ranking completo</button>
-      </div>
-      <div class="panel-card">
-        <div class="panel-head">
-          <span class="panel-title">🧠 Trivia</span>
-          <span class="panel-sub">inicia sesión para jugar</span>
-        </div>
-        <div id="triviaGate"></div>
-        <div id="triviaGame" style="display:none">
-          <div class="trivia-progress" id="triviaProgress"></div>
-          <div class="trivia-question" id="triviaQuestion"></div>
-          <div class="trivia-options" id="triviaOptions"></div>
-        </div>
-        <div id="triviaResult" style="display:none"></div>
       </div>
     </aside>
   </div>
@@ -617,6 +663,12 @@ function initApp() {
   const rankingModalClose = document.getElementById('rankingModalClose');
   const rankingModalList = document.getElementById('rankingModalList');
 
+  const chatMessagesEl = document.getElementById('chatMessages');
+  const chatGateEl = document.getElementById('chatGate');
+  const chatInputRowEl = document.getElementById('chatInputRow');
+  const chatInputEl = document.getElementById('chatInput');
+  const chatSendBtnEl = document.getElementById('chatSendBtn');
+
   let firebaseOk = false;
   try {
     firebase.initializeApp(FIREBASE_CONFIG);
@@ -631,6 +683,7 @@ function initApp() {
     voteCristianoBtn.disabled = true;
     triviaGateEl.textContent = 'La trivia no está disponible ahora mismo.';
     rankingListEl.textContent = 'El ranking no está disponible ahora mismo.';
+    chatMessagesEl.innerHTML = '<p class="chat-empty">El chat no está disponible ahora mismo.</p>';
     return;
   }
 
@@ -945,10 +998,101 @@ function initApp() {
     if (e.target === rankingModalOverlay) closeRankingModal();
   });
 
+  // --- Chat en vivo: público para leer, requiere sesión para escribir ---
+  function fmtChatTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function renderChatMessages(entries) {
+    if (entries.length === 0) {
+      return '<p class="chat-empty">Todavía no hay mensajes. ¡Sé el primero en escribir!</p>';
+    }
+    return entries.map((e) => `
+      <div class="chat-msg">
+        ${e.photo ? `<img src="${e.photo}" alt="">` : '<span class="chat-avatar-placeholder">🙂</span>'}
+        <div class="chat-msg-body">
+          <span class="chat-msg-name">${e.name || 'Fan anónimo'}</span><span class="chat-msg-time">${fmtChatTime(e.ts)}</span>
+          <div class="chat-msg-text"></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  let chatAtBottom = true;
+  chatMessagesEl.addEventListener('scroll', () => {
+    chatAtBottom = (chatMessagesEl.scrollHeight - chatMessagesEl.scrollTop - chatMessagesEl.clientHeight) < 40;
+  });
+
+  const chatRef = db.ref('chatMessages').orderByChild('ts').limitToLast(150);
+  chatRef.on('value', (snap) => {
+    const entries = [];
+    snap.forEach((child) => { entries.push(child.val()); });
+    entries.sort((a, b) => (a.ts || 0) - (b.ts || 0));
+    chatMessagesEl.innerHTML = renderChatMessages(entries);
+    // Insertar el texto de forma segura (escapado) en cada burbuja
+    const bodies = chatMessagesEl.querySelectorAll('.chat-msg-text');
+    bodies.forEach((el, i) => { el.textContent = entries[i] ? (entries[i].text || '') : ''; });
+    if (chatAtBottom) chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+  }, (err) => {
+    console.error('Error leyendo el chat', err);
+    chatMessagesEl.innerHTML = '<p class="chat-empty">No se pudo cargar el chat.</p>';
+  });
+
+  function renderChatGate() {
+    if (currentUser) {
+      chatGateEl.style.display = 'none';
+      chatInputRowEl.style.display = 'flex';
+    } else {
+      chatInputRowEl.style.display = 'none';
+      chatGateEl.style.display = '';
+      chatGateEl.innerHTML = `
+        <div class="chat-gate">
+          <p>Inicia sesión con Google (arriba) para escribir en el chat.</p>
+          <button class="signin-btn" id="chatSignInBtn" type="button">Iniciar sesión con Google</button>
+        </div>`;
+      const btn = document.getElementById('chatSignInBtn');
+      if (btn) btn.addEventListener('click', () => auth.signInWithPopup(provider).catch((err) => console.error('Error al iniciar sesión', err)));
+    }
+  }
+
+  function sendChatMessage() {
+    if (!currentUser) return;
+    const text = chatInputEl.value.trim();
+    if (!text) return;
+    chatSendBtnEl.disabled = true;
+    const name = currentUser.displayName || currentUser.email || 'Fan anónimo';
+    const photo = currentUser.photoURL || '';
+    db.ref('chatMessages').push({
+      uid: currentUser.uid,
+      name,
+      photo,
+      text: text.slice(0, 300),
+      ts: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+      chatInputEl.value = '';
+    }).catch((err) => {
+      console.error('Error enviando mensaje', err);
+    }).finally(() => {
+      chatSendBtnEl.disabled = false;
+      chatInputEl.focus();
+    });
+  }
+
+  chatSendBtnEl.addEventListener('click', sendChatMessage);
+  chatInputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendChatMessage();
+    }
+  });
+
   auth.onAuthStateChanged((user) => {
     currentUser = user;
     renderAuthUI();
     renderTriviaGate();
+    renderChatGate();
 
     if (!user) {
       hasVoted = false;
