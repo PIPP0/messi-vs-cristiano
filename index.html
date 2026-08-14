@@ -14,7 +14,7 @@
   body{background:var(--dark);color:var(--text);overflow-x:hidden}
 
   header.hero{
-    position:relative;padding:64px 20px 40px;text-align:center;overflow:hidden;
+    position:relative;padding:44px 20px 30px;text-align:center;overflow:hidden;
     background:linear-gradient(120deg,var(--messi-bg2) 0%, var(--messi-bg1) 42%, var(--dark) 50%, var(--cr7-bg1) 58%, var(--cr7-bg2) 100%);
     background-size:180% 180%;animation:shimmer 12s ease-in-out infinite;
   }
@@ -25,7 +25,7 @@
     pointer-events:none;
   }
   header.hero h1{
-    position:relative;font-size:clamp(2.2rem,7vw,4.4rem);font-weight:900;letter-spacing:-1px;
+    position:relative;font-size:clamp(2rem,6.4vw,3.8rem);font-weight:900;letter-spacing:-1px;
     text-shadow:0 4px 24px rgba(0,0,0,.5);line-height:1.05;
     opacity:0;animation:fadeInUp .8s cubic-bezier(.16,1,.3,1) .1s both;
   }
@@ -35,14 +35,14 @@
     vertical-align:middle;border:3px solid rgba(255,255,255,.25);
   }
   header.hero p.tag{
-    position:relative;color:rgba(255,255,255,.9);font-size:1.05rem;margin-top:14px;font-weight:500;
+    position:relative;color:rgba(255,255,255,.9);font-size:.95rem;margin-top:10px;font-weight:500;
     opacity:0;animation:fadeInUp .8s cubic-bezier(.16,1,.3,1) .25s both;
   }
 
   .leader-banner{
-    position:relative;max-width:560px;margin:26px auto 0;background:rgba(0,0,0,.4);backdrop-filter:blur(6px);
-    border:1px solid rgba(255,255,255,.18);border-radius:50px;padding:13px 26px;
-    font-weight:700;font-size:1.05rem;
+    position:relative;max-width:520px;margin:18px auto 0;background:rgba(0,0,0,.4);backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.18);border-radius:50px;padding:9px 22px;
+    font-weight:700;font-size:.92rem;
     opacity:0;animation:fadeInUp .8s cubic-bezier(.16,1,.3,1) .4s both;
   }
   .leader-banner span.n{color:var(--cr7-accent)}
@@ -69,56 +69,60 @@
   button{transition:transform .15s ease}
   button:active{transform:scale(.96)}
 
-  .wrap{max-width:1080px;margin:0 auto;padding:40px 20px 30px}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 24px}
 
-  .section-title{display:flex;align-items:center;gap:10px;margin:46px 0 18px}
-  .section-title h2{font-size:1.25rem;font-weight:800}
-  .section-title .icon{font-size:1.4rem}
-  .section-title .sub{color:var(--muted);font-size:.82rem;font-weight:500;margin-left:auto}
+  .section-title{display:flex;align-items:center;gap:10px;margin:32px 0 14px}
+  .section-title h2{font-size:1.12rem;font-weight:800}
+  .section-title .icon{font-size:1.25rem}
+  .section-title .sub{color:var(--muted);font-size:.78rem;font-weight:500;margin-left:auto}
+  .section-title.hero-title{margin-top:22px}
+  .section-title.hero-title h2{font-size:1.4rem}
+  .section-title.hero-title .icon{font-size:1.6rem}
 
-  .cards{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:18px}
   @media (max-width:720px){.cards{grid-template-columns:1fr}}
 
   .card{
-    background:var(--panel);border-radius:20px;padding:28px 24px;position:relative;overflow:hidden;
-    border:1px solid rgba(255,255,255,.06);transition:transform .25s ease, box-shadow .25s ease;
+    background:var(--panel);border-radius:20px;padding:28px 26px;position:relative;overflow:hidden;
+    border:1px solid rgba(255,255,255,.07);transition:transform .25s ease, box-shadow .25s ease;
+    box-shadow:0 10px 30px rgba(0,0,0,.22);
   }
-  .card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.35)}
+  .card:hover{transform:translateY(-4px);box-shadow:0 18px 42px rgba(0,0,0,.38)}
   .card.messi{border-top:5px solid var(--messi-bg1)}
   .card.cr7{border-top:5px solid var(--cr7-bg1)}
 
-  .card .glow{position:absolute;top:-60px;right:-60px;width:180px;height:180px;border-radius:50%;filter:blur(50px);opacity:.35}
+  .card .glow{position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;filter:blur(55px);opacity:.4}
   .card.messi .glow{background:var(--messi-bg1)}
   .card.cr7 .glow{background:var(--cr7-bg1)}
 
-  .player-head{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+  .player-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}
   .number-badge{
-    width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;
-    font-weight:900;font-size:1.5rem;color:var(--dark);
+    width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:1.45rem;color:var(--dark);
   }
   .card.messi .number-badge{background:var(--messi-accent)}
   .card.cr7 .number-badge{background:var(--cr7-accent)}
   .player-head h2{font-size:1.5rem;font-weight:800}
-  .player-head .flag{color:var(--muted);font-size:.85rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+  .player-head .flag{color:var(--muted);font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
 
-  .total-goals{font-size:clamp(3.2rem,10vw,4.6rem);font-weight:900;line-height:1;margin:4px 0 6px;letter-spacing:-2px}
-  .total-label{color:var(--muted);font-size:.85rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:22px}
+  .total-goals{font-size:clamp(3.1rem,9.5vw,4.4rem);font-weight:900;line-height:1;margin:2px 0 4px;letter-spacing:-2px}
+  .total-label{color:var(--muted);font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:20px}
 
-  .breakdown{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
-  .bd-row{display:flex;justify-content:space-between;align-items:center;font-size:.92rem}
+  .breakdown{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+  .bd-row{display:flex;justify-content:space-between;align-items:center;font-size:.85rem}
   .bd-row .lbl{color:var(--muted)}
-  .bd-row .val{font-weight:800;font-size:1.05rem}
+  .bd-row .val{font-weight:800;font-size:.98rem}
 
-  .bar{height:8px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:2px}
+  .bar{height:7px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:2px}
   .bar > div{height:100%;border-radius:6px;transition:width 1s ease}
   .card.messi .bar > div{background:linear-gradient(90deg,var(--messi-bg1),var(--messi-accent))}
   .card.cr7 .bar > div{background:linear-gradient(90deg,var(--cr7-bg1),var(--cr7-accent))}
 
-  .asof{margin-top:18px;font-size:.75rem;color:var(--muted);border-top:1px solid rgba(255,255,255,.08);padding-top:14px}
+  .asof{margin-top:14px;font-size:.72rem;color:var(--muted);border-top:1px solid rgba(255,255,255,.08);padding-top:12px;line-height:1.4}
 
-  .compare-section{margin-top:22px;background:var(--panel);border-radius:20px;padding:26px 24px;border:1px solid rgba(255,255,255,.06)}
-  .compare-section h3{font-size:1.05rem;margin-bottom:18px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
-  .compare-row{margin-bottom:16px}
+  .compare-section{margin-top:16px;background:var(--panel);border-radius:16px;padding:20px 20px;border:1px solid rgba(255,255,255,.06)}
+  .compare-section h3{font-size:.92rem;margin-bottom:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+  .compare-row{margin-bottom:12px}
   .compare-row .labels{display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:6px}
   .compare-row .labels .m{color:var(--messi-bg1);font-weight:700}
   .compare-row .labels .c{color:var(--cr7-accent);font-weight:700}
@@ -126,8 +130,14 @@
   .compare-track .m-fill{background:linear-gradient(90deg,var(--messi-bg2),var(--messi-bg1));transition:width 1s ease}
   .compare-track .c-fill{background:linear-gradient(90deg,var(--cr7-accent),var(--cr7-bg1));transition:width 1s ease}
 
+  /* Layout principal: contenido + barra lateral fija con ranking y trivia */
+  .page-grid{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
+  @media (max-width:900px){.page-grid{grid-template-columns:1fr}}
+  .side-col{display:flex;flex-direction:column;gap:14px;position:sticky;top:14px}
+  @media (max-width:900px){.side-col{position:static}}
+
   /* Votación de hinchas (compacta) */
-  .vote-section{background:var(--panel);border-radius:14px;padding:14px 18px;border:1px solid rgba(255,255,255,.06);margin-bottom:28px}
+  .vote-section{background:var(--panel);border-radius:14px;padding:12px 16px;border:1px solid rgba(255,255,255,.06);margin-bottom:18px}
   .vote-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px;margin-bottom:10px}
   .vote-head-title{font-size:.92rem;font-weight:800}
   .vote-head-sub{font-size:.72rem;color:var(--muted);display:flex;align-items:center}
@@ -167,7 +177,7 @@
   /* Barra superior con logo y acceso de usuario, dentro del header */
   .topbar{
     position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;
-    max-width:1080px;margin:0 auto 22px;padding:0 2px;flex-wrap:wrap;
+    max-width:1080px;margin:0 auto 14px;padding:0 2px;flex-wrap:wrap;
     opacity:0;animation:fadeInUp .8s cubic-bezier(.16,1,.3,1) 0s both;
   }
   .topbar-brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:.95rem;letter-spacing:.03em;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.3)}
@@ -183,66 +193,64 @@
   }
 
   /* YouTube live subscribers */
-  .yt-section{background:var(--panel);border-radius:20px;padding:26px 24px;border:1px solid rgba(255,255,255,.06)}
-  .yt-cards{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px}
+  .yt-section{background:var(--panel);border-radius:16px;padding:18px 18px;border:1px solid rgba(255,255,255,.06)}
+  .yt-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
   @media (max-width:720px){.yt-cards{grid-template-columns:1fr}}
-  .yt-card{background:var(--panel2);border-radius:16px;padding:20px;text-align:center;position:relative}
-  .yt-card .yt-name{font-weight:700;font-size:.95rem;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px}
-  .yt-card .yt-count{font-size:clamp(1.8rem,5vw,2.4rem);font-weight:900;letter-spacing:-1px}
+  .yt-card{background:var(--panel2);border-radius:14px;padding:16px;text-align:center;position:relative}
+  .yt-card .yt-name{font-weight:700;font-size:.85rem;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:8px}
+  .yt-card .yt-count{font-size:clamp(1.5rem,4vw,2rem);font-weight:900;letter-spacing:-1px}
   .yt-card.messi .yt-count{color:var(--messi-bg1)}
   .yt-card.cr7 .yt-count{color:var(--cr7-accent)}
-  .yt-card .yt-approx{font-size:.72rem;color:var(--muted);margin-top:6px}
+  .yt-card .yt-approx{font-size:.68rem;color:var(--muted);margin-top:5px}
 
   /* Interesting stats grid */
-  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-top:16px}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:12px}
   .stat-card{
-    background:var(--panel);border-radius:16px;padding:18px 20px;border:1px solid rgba(255,255,255,.06);
+    background:var(--panel);border-radius:14px;padding:14px 16px;border:1px solid rgba(255,255,255,.06);
     transition:transform .2s ease;
   }
   .stat-card:hover{transform:translateY(-3px)}
-  .stat-card .stat-label{font-size:.8rem;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:12px}
-  .stat-card .stat-row{display:flex;justify-content:space-between;align-items:baseline;font-size:.95rem;padding:4px 0}
-  .stat-card .stat-row .name{color:var(--muted);font-size:.82rem}
-  .stat-card .stat-row .num{font-weight:800;font-size:1.15rem}
+  .stat-card .stat-label{font-size:.76rem;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:7px;margin-bottom:9px}
+  .stat-card .stat-row{display:flex;justify-content:space-between;align-items:baseline;font-size:.88rem;padding:3px 0}
+  .stat-card .stat-row .name{color:var(--muted);font-size:.78rem}
+  .stat-card .stat-row .num{font-weight:800;font-size:1.05rem}
   .stat-card .stat-row.winner .num{color:var(--cr7-accent)}
   .stat-card .stat-row.winner.messi-win .num{color:var(--messi-bg1)}
   .stat-card .stat-row.winner .crown{margin-left:4px;display:inline-block;animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both}
 
-  .top-panels{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
-  @media (max-width:720px){.top-panels{grid-template-columns:1fr}}
-  .panel-card{background:var(--panel);border-radius:16px;padding:16px 18px;border:1px solid rgba(255,255,255,.06)}
-  .panel-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;gap:8px}
-  .panel-title{font-size:.88rem;font-weight:800;white-space:nowrap}
-  .panel-sub{font-size:.66rem;color:var(--muted);text-align:right}
-  .panel-more{margin-top:8px;width:100%;background:var(--panel2);color:var(--text);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:7px;font-size:.72rem;font-weight:700;cursor:pointer;transition:background .15s ease}
+  .panel-card{background:var(--panel);border-radius:14px;padding:13px 15px;border:1px solid rgba(255,255,255,.06)}
+  .panel-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;gap:8px}
+  .panel-title{font-size:.82rem;font-weight:800;white-space:nowrap}
+  .panel-sub{font-size:.63rem;color:var(--muted);text-align:right}
+  .panel-more{margin-top:7px;width:100%;background:var(--panel2);color:var(--text);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px;font-size:.7rem;font-weight:700;cursor:pointer;transition:background .15s ease}
   .panel-more:hover{background:#262b3d}
 
-  .trivia-msg{color:var(--muted);font-size:.8rem;margin-bottom:2px;text-align:center}
-  .trivia-progress{font-size:.72rem;color:var(--muted);font-weight:600;margin-bottom:8px;text-align:center}
-  .trivia-question{font-size:.88rem;font-weight:700;margin-bottom:12px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px}
-  .trivia-q-icon{font-size:1.05rem}
-  .trivia-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .trivia-msg{color:var(--muted);font-size:.74rem;margin-bottom:2px;text-align:center;line-height:1.4}
+  .trivia-progress{font-size:.68rem;color:var(--muted);font-weight:600;margin-bottom:7px;text-align:center}
+  .trivia-question{font-size:.8rem;font-weight:700;margin-bottom:10px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;line-height:1.3}
+  .trivia-q-icon{font-size:.95rem}
+  .trivia-options{display:grid;grid-template-columns:1fr 1fr;gap:7px}
   .trivia-opt{
-    border-radius:10px;padding:10px 8px;cursor:pointer;font-weight:800;font-size:.8rem;
+    border-radius:9px;padding:8px 6px;cursor:pointer;font-weight:800;font-size:.74rem;
     background:var(--panel2);color:var(--text);border:1px solid rgba(255,255,255,.08);transition:transform .15s ease, background .2s ease;
   }
   .trivia-opt:hover:not(:disabled){transform:translateY(-2px);background:#262b3d}
   .trivia-opt:disabled{cursor:default}
   .trivia-opt.correct{background:linear-gradient(135deg,#1f7a3d,#2fae5c);color:#fff}
   .trivia-opt.wrong{background:linear-gradient(135deg,#7a1f2b,#ae2f3f);color:#fff}
-  .trivia-final{text-align:center;font-size:.82rem;margin-bottom:10px}
-  .trivia-saving{margin-top:8px;font-size:.68rem;color:var(--muted);text-align:center}
+  .trivia-final{text-align:center;font-size:.78rem;margin-bottom:8px;line-height:1.4}
+  .trivia-saving{margin-top:7px;font-size:.66rem;color:var(--muted);text-align:center}
   #triviaResult{text-align:center}
-  #triviaGate{text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+  #triviaGate{text-align:center;display:flex;flex-direction:column;align-items:center;gap:7px}
 
-  .ranking-row{display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid rgba(255,255,255,.05);font-size:.8rem}
+  .ranking-row{display:flex;align-items:center;gap:7px;padding:4px 2px;border-bottom:1px solid rgba(255,255,255,.05);font-size:.78rem}
   .ranking-row:last-child{border-bottom:none}
-  .ranking-pos{width:20px;text-align:center;font-weight:800;font-size:.8rem;color:var(--muted)}
-  .ranking-photo{width:22px;height:22px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.15)}
-  .ranking-photo-placeholder{display:flex;align-items:center;justify-content:center;background:var(--panel2);font-size:.75rem}
-  .ranking-name{flex:1;font-weight:700;font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .ranking-score{font-weight:800;font-size:.78rem;color:var(--cr7-accent)}
-  .ranking-empty{color:var(--muted);font-size:.78rem;text-align:center;padding:6px 0}
+  .ranking-pos{width:18px;text-align:center;font-weight:800;font-size:.76rem;color:var(--muted)}
+  .ranking-photo{width:20px;height:20px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.15)}
+  .ranking-photo-placeholder{display:flex;align-items:center;justify-content:center;background:var(--panel2);font-size:.7rem}
+  .ranking-name{flex:1;font-weight:700;font-size:.75rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ranking-score{font-weight:800;font-size:.75rem;color:var(--cr7-accent)}
+  .ranking-empty{color:var(--muted);font-size:.75rem;text-align:center;padding:6px 0}
 
   .ranking-modal-overlay{
     display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;
@@ -257,11 +265,11 @@
   .ranking-modal-list .ranking-row{font-size:.85rem;padding:8px 2px}
   .ranking-modal-list .ranking-photo{width:26px;height:26px}
 
-  footer{text-align:center;padding:30px 20px 60px;color:var(--muted);font-size:.8rem;line-height:1.7}
+  footer{text-align:center;padding:22px 20px 40px;color:var(--muted);font-size:.78rem;line-height:1.6}
   footer a{color:var(--muted)}
   .badge-auto{
     display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:6px 14px;margin-bottom:14px;font-weight:600;color:var(--text)
+    border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:5px 13px;margin-bottom:12px;font-weight:600;color:var(--text);font-size:.82rem
   }
   .badge-auto .dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80;animation:pulseDot 1.8s ease-in-out infinite}
   .vote-head-sub .dot{animation:pulseDot 1.8s ease-in-out infinite}
@@ -284,47 +292,149 @@
     <span class="badge-auto"><span class="dot"></span> Goles y estadísticas actualizados automáticamente todos los días</span>
   </div>
 
-  <div class="vote-section reveal">
-    <div class="vote-head">
-      <span class="vote-head-title">🗳️ ¿De qué equipo eres?</span>
-      <span class="vote-head-sub"><span class="dot"></span>en vivo · un voto por persona</span>
-    </div>
-    <div class="vote-buttons">
-      <button id="voteMessiBtn" class="vote-btn messi">
-        <span class="vb-title">Team Messi</span>
-        <span class="vb-count" id="voteCountMessi">— votos</span>
-      </button>
-      <button id="voteCristianoBtn" class="vote-btn cr7">
-        <span class="vb-title">Team Cristiano</span>
-        <span class="vb-count" id="voteCountCristiano">— votos</span>
-      </button>
-    </div>
-    <div class="vote-bar"><div class="vb-fill-m" id="voteBarMessi"></div><div class="vb-fill-c" id="voteBarCristiano"></div></div>
-    <div class="vote-status" id="voteStatus">Cargando votos...</div>
-  </div>
+  <div class="page-grid">
+    <div class="main-col">
+      <div class="vote-section reveal">
+        <div class="vote-head">
+          <span class="vote-head-title">🗳️ ¿De qué equipo eres?</span>
+          <span class="vote-head-sub"><span class="dot"></span>en vivo · un voto por persona</span>
+        </div>
+        <div class="vote-buttons">
+          <button id="voteMessiBtn" class="vote-btn messi">
+            <span class="vb-title">Team Messi</span>
+            <span class="vb-count" id="voteCountMessi">— votos</span>
+          </button>
+          <button id="voteCristianoBtn" class="vote-btn cr7">
+            <span class="vb-title">Team Cristiano</span>
+            <span class="vb-count" id="voteCountCristiano">— votos</span>
+          </button>
+        </div>
+        <div class="vote-bar"><div class="vb-fill-m" id="voteBarMessi"></div><div class="vb-fill-c" id="voteBarCristiano"></div></div>
+        <div class="vote-status" id="voteStatus">Cargando votos...</div>
+      </div>
 
-  <div class="top-panels reveal">
-    <div class="panel-card">
-      <div class="panel-head">
-        <span class="panel-title">🏆 Ranking de fans</span>
-        <span class="panel-sub">top 10 · en vivo</span>
+      <div class="section-title hero-title">
+        <span class="icon icon-ball">⚽</span><h2>Goles en su carrera</h2>
       </div>
-      <div id="rankingList">Cargando ranking...</div>
-      <button class="panel-more" id="rankingMoreBtn" type="button" style="display:none">Ver ranking completo</button>
+      <div class="cards">
+        <div class="card messi reveal">
+          <div class="glow"></div>
+          <div class="player-head">
+            <div class="number-badge">10</div>
+            <div>
+              <h2>Lionel Messi</h2>
+              <div class="flag">Argentina</div>
+            </div>
+          </div>
+          <div class="total-goals" id="messiTotal">0</div>
+          <div class="total-label">Goles totales en su carrera</div>
+          <div class="breakdown">
+            <div class="bd-row">
+              <span class="lbl">Goles con clubes (Barcelona, PSG, Inter Miami)</span>
+              <span class="val" id="messiClub">0</span>
+            </div>
+            <div class="bar"><div id="messiClubBar" style="width:0%"></div></div>
+            <div class="bd-row" style="margin-top:8px">
+              <span class="lbl">Goles con la selección Argentina</span>
+              <span class="val" id="messiIntl">0</span>
+            </div>
+            <div class="bar"><div id="messiIntlBar" style="width:0%"></div></div>
+          </div>
+          <div class="asof" id="messiAsOf"></div>
+        </div>
+
+        <div class="card cr7 reveal">
+          <div class="glow"></div>
+          <div class="player-head">
+            <div class="number-badge">7</div>
+            <div>
+              <h2>Cristiano Ronaldo</h2>
+              <div class="flag">Portugal</div>
+            </div>
+          </div>
+          <div class="total-goals" id="cr7Total">0</div>
+          <div class="total-label">Goles totales en su carrera</div>
+          <div class="breakdown">
+            <div class="bd-row">
+              <span class="lbl">Goles con clubes (Sporting, United, Madrid, Juve, Al Nassr...)</span>
+              <span class="val" id="cr7Club">0</span>
+            </div>
+            <div class="bar"><div id="cr7ClubBar" style="width:0%"></div></div>
+            <div class="bd-row" style="margin-top:8px">
+              <span class="lbl">Goles con la selección Portugal</span>
+              <span class="val" id="cr7Intl">0</span>
+            </div>
+            <div class="bar"><div id="cr7IntlBar" style="width:0%"></div></div>
+          </div>
+          <div class="asof" id="cr7AsOf"></div>
+        </div>
+      </div>
+
+      <div class="compare-section reveal">
+        <h3>Comparación directa de goles</h3>
+        <div class="compare-row">
+          <div class="labels"><span class="m">Messi — Total</span><span class="c">Cristiano — Total</span></div>
+          <div class="compare-track"><div class="m-fill" id="cmpTotalM"></div><div class="c-fill" id="cmpTotalC"></div></div>
+        </div>
+        <div class="compare-row">
+          <div class="labels"><span class="m">Messi — Clubes</span><span class="c">Cristiano — Clubes</span></div>
+          <div class="compare-track"><div class="m-fill" id="cmpClubM"></div><div class="c-fill" id="cmpClubC"></div></div>
+        </div>
+        <div class="compare-row">
+          <div class="labels"><span class="m">Messi — Selección</span><span class="c">Cristiano — Selección</span></div>
+          <div class="compare-track"><div class="m-fill" id="cmpIntlM"></div><div class="c-fill" id="cmpIntlC"></div></div>
+        </div>
+      </div>
+
+      <div class="section-title">
+        <span class="icon">▶️</span><h2>Suscriptores en YouTube</h2>
+        <span class="sub">canales oficiales verificados</span>
+      </div>
+      <div class="yt-section reveal">
+        <div class="yt-cards">
+          <div class="yt-card messi">
+            <div class="yt-name">Leo Messi</div>
+            <div class="yt-count" id="ytMessiCount">0</div>
+            <div class="yt-approx" id="ytMessiNote">Aproximado, se actualiza junto con el resto del sitio</div>
+          </div>
+          <div class="yt-card cr7">
+            <div class="yt-name">UR · Cristiano</div>
+            <div class="yt-count" id="ytCr7Count">0</div>
+            <div class="yt-approx" id="ytCr7Note">Aproximado, se actualiza junto con el resto del sitio</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">
+        <span class="icon">📊</span><h2>Datos interesantes</h2>
+        <span class="sub">quién gana en cada categoría</span>
+      </div>
+      <div class="stats-grid" id="statsGrid"></div>
     </div>
-    <div class="panel-card">
-      <div class="panel-head">
-        <span class="panel-title">🧠 Trivia</span>
-        <span class="panel-sub">inicia sesión para jugar</span>
+
+    <aside class="side-col reveal">
+      <div class="panel-card">
+        <div class="panel-head">
+          <span class="panel-title">🏆 Ranking de fans</span>
+          <span class="panel-sub">top 10 · en vivo</span>
+        </div>
+        <div id="rankingList">Cargando ranking...</div>
+        <button class="panel-more" id="rankingMoreBtn" type="button" style="display:none">Ver ranking completo</button>
       </div>
-      <div id="triviaGate"></div>
-      <div id="triviaGame" style="display:none">
-        <div class="trivia-progress" id="triviaProgress"></div>
-        <div class="trivia-question" id="triviaQuestion"></div>
-        <div class="trivia-options" id="triviaOptions"></div>
+      <div class="panel-card">
+        <div class="panel-head">
+          <span class="panel-title">🧠 Trivia</span>
+          <span class="panel-sub">inicia sesión para jugar</span>
+        </div>
+        <div id="triviaGate"></div>
+        <div id="triviaGame" style="display:none">
+          <div class="trivia-progress" id="triviaProgress"></div>
+          <div class="trivia-question" id="triviaQuestion"></div>
+          <div class="trivia-options" id="triviaOptions"></div>
+        </div>
+        <div id="triviaResult" style="display:none"></div>
       </div>
-      <div id="triviaResult" style="display:none"></div>
-    </div>
+    </aside>
   </div>
 
   <div class="ranking-modal-overlay" id="rankingModalOverlay">
@@ -336,104 +446,6 @@
       <div id="rankingModalList" class="ranking-modal-list">Cargando...</div>
     </div>
   </div>
-
-  <div class="section-title">
-    <span class="icon icon-ball">⚽</span><h2>Goles en su carrera</h2>
-  </div>
-  <div class="cards">
-    <div class="card messi reveal">
-      <div class="glow"></div>
-      <div class="player-head">
-        <div class="number-badge">10</div>
-        <div>
-          <h2>Lionel Messi</h2>
-          <div class="flag">Argentina</div>
-        </div>
-      </div>
-      <div class="total-goals" id="messiTotal">0</div>
-      <div class="total-label">Goles totales en su carrera</div>
-      <div class="breakdown">
-        <div class="bd-row">
-          <span class="lbl">Goles con clubes (Barcelona, PSG, Inter Miami)</span>
-          <span class="val" id="messiClub">0</span>
-        </div>
-        <div class="bar"><div id="messiClubBar" style="width:0%"></div></div>
-        <div class="bd-row" style="margin-top:8px">
-          <span class="lbl">Goles con la selección Argentina</span>
-          <span class="val" id="messiIntl">0</span>
-        </div>
-        <div class="bar"><div id="messiIntlBar" style="width:0%"></div></div>
-      </div>
-      <div class="asof" id="messiAsOf"></div>
-    </div>
-
-    <div class="card cr7 reveal">
-      <div class="glow"></div>
-      <div class="player-head">
-        <div class="number-badge">7</div>
-        <div>
-          <h2>Cristiano Ronaldo</h2>
-          <div class="flag">Portugal</div>
-        </div>
-      </div>
-      <div class="total-goals" id="cr7Total">0</div>
-      <div class="total-label">Goles totales en su carrera</div>
-      <div class="breakdown">
-        <div class="bd-row">
-          <span class="lbl">Goles con clubes (Sporting, United, Madrid, Juve, Al Nassr...)</span>
-          <span class="val" id="cr7Club">0</span>
-        </div>
-        <div class="bar"><div id="cr7ClubBar" style="width:0%"></div></div>
-        <div class="bd-row" style="margin-top:8px">
-          <span class="lbl">Goles con la selección Portugal</span>
-          <span class="val" id="cr7Intl">0</span>
-        </div>
-        <div class="bar"><div id="cr7IntlBar" style="width:0%"></div></div>
-      </div>
-      <div class="asof" id="cr7AsOf"></div>
-    </div>
-  </div>
-
-  <div class="compare-section reveal">
-    <h3>Comparación directa de goles</h3>
-    <div class="compare-row">
-      <div class="labels"><span class="m">Messi — Total</span><span class="c">Cristiano — Total</span></div>
-      <div class="compare-track"><div class="m-fill" id="cmpTotalM"></div><div class="c-fill" id="cmpTotalC"></div></div>
-    </div>
-    <div class="compare-row">
-      <div class="labels"><span class="m">Messi — Clubes</span><span class="c">Cristiano — Clubes</span></div>
-      <div class="compare-track"><div class="m-fill" id="cmpClubM"></div><div class="c-fill" id="cmpClubC"></div></div>
-    </div>
-    <div class="compare-row">
-      <div class="labels"><span class="m">Messi — Selección</span><span class="c">Cristiano — Selección</span></div>
-      <div class="compare-track"><div class="m-fill" id="cmpIntlM"></div><div class="c-fill" id="cmpIntlC"></div></div>
-    </div>
-  </div>
-
-  <div class="section-title">
-    <span class="icon">▶️</span><h2>Suscriptores en YouTube</h2>
-    <span class="sub">canales oficiales verificados</span>
-  </div>
-  <div class="yt-section reveal">
-    <div class="yt-cards">
-      <div class="yt-card messi">
-        <div class="yt-name">Leo Messi</div>
-        <div class="yt-count" id="ytMessiCount">0</div>
-        <div class="yt-approx" id="ytMessiNote">Aproximado, se actualiza junto con el resto del sitio</div>
-      </div>
-      <div class="yt-card cr7">
-        <div class="yt-name">UR · Cristiano</div>
-        <div class="yt-count" id="ytCr7Count">0</div>
-        <div class="yt-approx" id="ytCr7Note">Aproximado, se actualiza junto con el resto del sitio</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="section-title">
-    <span class="icon">📊</span><h2>Datos interesantes</h2>
-    <span class="sub">quién gana en cada categoría</span>
-  </div>
-  <div class="stats-grid" id="statsGrid"></div>
 </div>
 
 <footer>
