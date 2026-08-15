@@ -1202,11 +1202,23 @@ function initApp() {
 
   // --- Ranking de fans: público, visible sin necesidad de loguearse ---
   const medals = ['🥇', '🥈', '🥉'];
+  function scaledFanScore(e) {
+    // Puntajes viejos se guardaban como "respuestas correctas" (máx. 8).
+    // Los nuevos se guardan en puntos (10 por respuesta correcta). Normalizamos
+    // los viejos a la misma escala de puntos para que el ranking sea consistente.
+    if (e.total && e.total <= 20) {
+      return { score: e.score * 10, total: e.total * 10 };
+    }
+    return { score: e.score, total: e.total };
+  }
+
   function renderRankingRows(entries) {
     if (entries.length === 0) {
       return '<p class="ranking-empty">Todavía nadie jugó la trivia. ¡Sé el primero!</p>';
     }
-    return entries.map((e, i) => `
+    return entries.map((e, i) => {
+      const sc = scaledFanScore(e);
+      return `
       <div class="ranking-row">
         <span class="ranking-pos">${medals[i] || (i + 1)}</span>
         <span class="avatar-wrap">
@@ -1214,9 +1226,10 @@ function initApp() {
           ${presenceMap[e.uid] ? '<span class="presence-dot"></span>' : ''}
         </span>
         <span class="ranking-name">${e.name || 'Fan anónimo'}</span>
-        <span class="ranking-score">${e.score}/${e.total}</span>
+        <span class="ranking-score">${sc.score}/${sc.total}</span>
       </div>
-    `).join('');
+    `;
+    }).join('');
   }
 
   let allFanEntries = [];
