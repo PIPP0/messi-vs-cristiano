@@ -901,9 +901,17 @@ function initApp() {
 
   function applyVotedState(team) {
     hasVoted = true;
+    voteMessiBtn.disabled = false;
+    voteCristianoBtn.disabled = false;
+    clearTimeout(voteStatusTimeout);
+    voteStatus.textContent = '';
+  }
+
+  function flashVoteConfirmation(team) {
+    applyVotedState(team);
+    const teamLabel = team === 'messi' ? 'Team Messi' : 'Team Cristiano';
     voteMessiBtn.disabled = true;
     voteCristianoBtn.disabled = true;
-    const teamLabel = team === 'messi' ? 'Team Messi' : 'Team Cristiano';
     voteStatus.textContent = `Ya votaste por ${teamLabel}. ¡Gracias por participar!`;
     clearTimeout(voteStatusTimeout);
     voteStatusTimeout = setTimeout(() => {
@@ -931,7 +939,7 @@ function initApp() {
 
     votedRef.set(team)
       .then(() => voteCountRef.transaction((current) => (current || 0) + 1))
-      .then(() => applyVotedState(team))
+      .then(() => flashVoteConfirmation(team))
       .catch((err) => {
         console.error('Error al votar', err);
         // Si el error es porque ya existe un voto de este usuario, lo confirmamos leyendo el valor.
