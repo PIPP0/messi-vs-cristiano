@@ -148,6 +148,12 @@
   .chat-msg{display:flex;gap:7px;align-items:flex-start}
   .chat-msg img{width:22px;height:22px;border-radius:50%;flex:none;margin-top:1px}
   .chat-msg .chat-avatar-placeholder{width:22px;height:22px;border-radius:50%;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:.65rem;flex:none;margin-top:1px}
+  .avatar-wrap{position:relative;display:inline-flex;flex:none}
+  .chat-msg .avatar-wrap{margin-top:1px}
+  .presence-dot{position:absolute;bottom:-1px;right:-1px;width:8px;height:8px;border-radius:50%;background:#4ade80;border:2px solid var(--panel);box-shadow:0 0 4px #4ade80}
+  .chat-msg .presence-dot{border-color:var(--panel)}
+  .user-chip .avatar-wrap{margin:0}
+  .user-chip .presence-dot{width:7px;height:7px;border-width:1.5px}
   .chat-msg-body{min-width:0}
   .chat-msg-name{font-size:.72rem;font-weight:800;color:var(--text)}
   .chat-msg-time{font-size:.6rem;color:var(--muted);font-weight:500;margin-left:6px}
@@ -891,11 +897,14 @@ function initApp() {
       const photo = currentUser.photoURL || '';
       voteAuthEl.innerHTML = `
         <span class="user-chip">
-          ${photo ? `<img src="${photo}" alt="">` : ''}
+          ${photo ? `<span class="avatar-wrap"><img src="${photo}" alt=""><span class="presence-dot"></span></span>` : ''}
           Hola, <span class="u-name">${name}</span>
           <button class="u-signout" id="signOutBtn" type="button">cerrar sesión</button>
         </span>`;
-      document.getElementById('signOutBtn').addEventListener('click', () => auth.signOut());
+      document.getElementById('signOutBtn').addEventListener('click', () => {
+        if (currentUser) db.ref('presence/' + currentUser.uid).remove();
+        auth.signOut();
+      });
     }
   }
 
@@ -1109,7 +1118,10 @@ function initApp() {
     return entries.map((e, i) => `
       <div class="ranking-row">
         <span class="ranking-pos">${medals[i] || (i + 1)}</span>
-        ${e.photo ? `<img class="ranking-photo" src="${e.photo}" alt="">` : '<span class="ranking-photo ranking-photo-placeholder">🙂</span>'}
+        <span class="avatar-wrap">
+          ${e.photo ? `<img class="ranking-photo" src="${e.photo}" alt="">` : '<span class="ranking-photo ranking-photo-placeholder">🙂</span>'}
+          ${presenceMap[e.uid] ? '<span class="presence-dot"></span>' : ''}
+        </span>
         <span class="ranking-name">${e.name || 'Fan anónimo'}</span>
         <span class="ranking-score">${e.score}/${e.total}</span>
       </div>
@@ -1179,7 +1191,10 @@ function initApp() {
     }
     return entries.map((e) => `
       <div class="chat-msg">
-        ${e.photo ? `<img src="${e.photo}" alt="">` : '<span class="chat-avatar-placeholder">🙂</span>'}
+        <span class="avatar-wrap">
+          ${e.photo ? `<img src="${e.photo}" alt="">` : '<span class="chat-avatar-placeholder">🙂</span>'}
+          ${presenceMap[e.uid] ? '<span class="presence-dot"></span>' : ''}
+        </span>
         <div class="chat-msg-body">
           <span class="chat-msg-name">${e.name || 'Fan anónimo'}</span><span class="chat-msg-time">${fmtChatTime(e.ts)}</span>
           <div class="chat-msg-text"></div>
@@ -1193,19 +1208,47 @@ function initApp() {
     chatAtBottom = (chatMessagesEl.scrollHeight - chatMessagesEl.scrollTop - chatMessagesEl.clientHeight) < 40;
   });
 
+  let lastChatEntries = [];
+  let presenceMap = {};
+
+  function renderChatFromCache() {
+    chatMessagesEl.innerHTML = renderChatMessages(lastChatEntries);
+    const bodies = chatMessagesEl.querySelectorAll('.chat-msg-text');
+    bodies.forEach((el, i) => { el.textContent = lastChatEntries[i] ? (lastChatEntries[i].text || '') : ''; });
+  }
+
   const chatRef = db.ref('chatMessages').orderByChild('ts').limitToLast(150);
   chatRef.on('value', (snap) => {
     const entries = [];
     snap.forEach((child) => { entries.push(child.val()); });
     entries.sort((a, b) => (a.ts || 0) - (b.ts || 0));
-    chatMessagesEl.innerHTML = renderChatMessages(entries);
-    // Insertar el texto de forma segura (escapado) en cada burbuja
-    const bodies = chatMessagesEl.querySelectorAll('.chat-msg-text');
-    bodies.forEach((el, i) => { el.textContent = entries[i] ? (entries[i].text || '') : ''; });
+    lastChatEntries = entries;
+    renderChatFromCache();
     if (chatAtBottom) chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
   }, (err) => {
     console.error('Error leyendo el chat', err);
     chatMessagesEl.innerHTML = '<p class="chat-empty">No se pudo cargar el chat.</p>';
+  });
+
+  // --- Presencia: punto verde para usuarios activos en el chat y el ranking ---
+  function setupPresence(uid) {
+    const myPresenceRef = db.ref('presence/' + uid);
+    const connectedRef = db.ref('.info/connected');
+    connectedRef.on('value', (snap) => {
+      if (snap.val() === true) {
+        myPresenceRef.onDisconnect().remove();
+        myPresenceRef.set(true);
+      }
+    });
+  }
+
+  db.ref('presence').on('value', (snap) => {
+    const map = {};
+    snap.forEach((child) => { if (child.val() === true) map[child.key] = true; });
+    presenceMap = map;
+    renderChatFromCache();
+    rankingListEl.innerHTML = renderRankingRows(allFanEntries.slice(0, 10));
+    if (rankingModalOverlay.classList.contains('open')) renderRankingModalFiltered();
   });
 
   function renderChatGate() {
@@ -1353,6 +1396,7 @@ function initApp() {
     }
 
     checkOnboarding(user);
+    setupPresence(user.uid);
     voteStatus.textContent = 'Verificando tu voto...';
     db.ref('votedUsers/' + user.uid).once('value').then((snap) => {
       if (snap.exists()) {
