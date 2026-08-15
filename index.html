@@ -296,6 +296,30 @@
   .ranking-modal-list .ranking-row{font-size:.85rem;padding:8px 2px}
   .ranking-modal-list .ranking-photo{width:26px;height:26px}
 
+  .ranking-filters{display:flex;gap:8px;padding:0 18px 10px;flex-wrap:wrap}
+  .ranking-filters select{flex:1;min-width:120px}
+
+  .onboard-field{display:flex;flex-direction:column;gap:6px}
+  .onboard-label{font-size:.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .onboard-input{
+    background:var(--panel2);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--text);
+    padding:9px 10px;font-size:.85rem;font-family:inherit;
+  }
+  .onboard-input:focus{outline:none;border-color:rgba(255,255,255,.35)}
+  select.onboard-input{cursor:pointer}
+  .onboard-team-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .onboard-team-btn{
+    border:2px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 8px;cursor:pointer;
+    background:var(--panel2);color:var(--text);font-weight:800;font-size:.82rem;transition:transform .15s ease, border-color .2s ease;
+  }
+  .onboard-team-btn:hover{transform:translateY(-2px)}
+  .onboard-team-btn.messi.active{background:linear-gradient(135deg,var(--messi-bg2),var(--messi-bg1));border-color:var(--messi-bg1)}
+  .onboard-team-btn.cr7.active{background:linear-gradient(135deg,var(--cr7-bg2),var(--cr7-bg1));border-color:var(--cr7-bg1)}
+  .onboard-save-btn{width:100%;border:none;cursor:pointer}
+  .onboard-save-btn:disabled{opacity:.5;cursor:default}
+  .onboard-skip{background:none;border:none;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:.72rem;font-family:inherit;text-align:center}
+  .onboard-skip:hover{color:var(--text)}
+
   footer{text-align:center;padding:22px 20px 40px;color:var(--muted);font-size:.78rem;line-height:1.6}
   footer a{color:var(--muted)}
   .badge-auto{
@@ -489,7 +513,45 @@
         <span>🏆 Ranking completo de fans</span>
         <button class="ranking-modal-close" id="rankingModalClose" type="button">✕</button>
       </div>
+      <div class="ranking-filters">
+        <select id="rankingFilterCountry" class="onboard-input"></select>
+        <select id="rankingFilterTeam" class="onboard-input">
+          <option value="">Todos los equipos</option>
+          <option value="messi">Team Messi</option>
+          <option value="cristiano">Team Cristiano</option>
+        </select>
+      </div>
       <div id="rankingModalList" class="ranking-modal-list">Cargando...</div>
+    </div>
+  </div>
+
+  <div class="ranking-modal-overlay" id="onboardModalOverlay">
+    <div class="ranking-modal" style="max-width:380px">
+      <div class="ranking-modal-head">
+        <span>👋 Completa tu perfil de fan</span>
+        <button class="ranking-modal-close" id="onboardSkipBtn" type="button">✕</button>
+      </div>
+      <div style="padding:4px 18px 18px;display:flex;flex-direction:column;gap:14px">
+        <p style="color:var(--muted);font-size:.76rem;line-height:1.4">Elige cómo te van a ver los demás fans en el chat y en los rankings.</p>
+        <div class="onboard-field">
+          <label class="onboard-label" for="onboardUsername">Nombre de usuario</label>
+          <input id="onboardUsername" class="onboard-input" type="text" maxlength="24" placeholder="Cómo quieres que te vean">
+        </div>
+        <div class="onboard-field">
+          <label class="onboard-label">Tu equipo</label>
+          <div class="onboard-team-buttons">
+            <button class="onboard-team-btn messi" id="onboardTeamMessi" type="button" data-team="messi">Team Messi</button>
+            <button class="onboard-team-btn cr7" id="onboardTeamCristiano" type="button" data-team="cristiano">Team Cristiano</button>
+          </div>
+        </div>
+        <div class="onboard-field">
+          <label class="onboard-label" for="onboardCountry">Tu país</label>
+          <select id="onboardCountry" class="onboard-input"></select>
+        </div>
+        <button class="signin-btn onboard-save-btn" id="onboardSaveBtn" type="button" disabled>Guardar y continuar</button>
+        <button class="onboard-skip" id="onboardSkipLink" type="button">Ahora no</button>
+        <p class="trivia-saving" id="onboardMsg" style="display:none"></p>
+      </div>
     </div>
   </div>
 </div>
@@ -641,6 +703,48 @@ const FIREBASE_CONFIG = {
   appId: "1:624578731941:web:a0a54e168c83836a80524c"
 };
 
+const COUNTRIES = [
+  { code: 'AR', name: 'Argentina', flag: '🇦🇷' },
+  { code: 'ES', name: 'España', flag: '🇪🇸' },
+  { code: 'MX', name: 'México', flag: '🇲🇽' },
+  { code: 'CO', name: 'Colombia', flag: '🇨🇴' },
+  { code: 'CL', name: 'Chile', flag: '🇨🇱' },
+  { code: 'PE', name: 'Perú', flag: '🇵🇪' },
+  { code: 'UY', name: 'Uruguay', flag: '🇺🇾' },
+  { code: 'PY', name: 'Paraguay', flag: '🇵🇾' },
+  { code: 'BO', name: 'Bolivia', flag: '🇧🇴' },
+  { code: 'EC', name: 'Ecuador', flag: '🇪🇨' },
+  { code: 'VE', name: 'Venezuela', flag: '🇻🇪' },
+  { code: 'BR', name: 'Brasil', flag: '🇧🇷' },
+  { code: 'PT', name: 'Portugal', flag: '🇵🇹' },
+  { code: 'US', name: 'Estados Unidos', flag: '🇺🇸' },
+  { code: 'FR', name: 'Francia', flag: '🇫🇷' },
+  { code: 'IT', name: 'Italia', flag: '🇮🇹' },
+  { code: 'DE', name: 'Alemania', flag: '🇩🇪' },
+  { code: 'GB', name: 'Reino Unido', flag: '🇬🇧' },
+  { code: 'MA', name: 'Marruecos', flag: '🇲🇦' },
+  { code: 'DZ', name: 'Argelia', flag: '🇩🇿' },
+  { code: 'CR', name: 'Costa Rica', flag: '🇨🇷' },
+  { code: 'PA', name: 'Panamá', flag: '🇵🇦' },
+  { code: 'GT', name: 'Guatemala', flag: '🇬🇹' },
+  { code: 'HN', name: 'Honduras', flag: '🇭🇳' },
+  { code: 'SV', name: 'El Salvador', flag: '🇸🇻' },
+  { code: 'NI', name: 'Nicaragua', flag: '🇳🇮' },
+  { code: 'DO', name: 'República Dominicana', flag: '🇩🇴' },
+  { code: 'PR', name: 'Puerto Rico', flag: '🇵🇷' },
+  { code: 'CU', name: 'Cuba', flag: '🇨🇺' },
+  { code: 'CA', name: 'Canadá', flag: '🇨🇦' },
+  { code: 'NL', name: 'Países Bajos', flag: '🇳🇱' },
+  { code: 'BE', name: 'Bélgica', flag: '🇧🇪' },
+  { code: 'TR', name: 'Turquía', flag: '🇹🇷' },
+  { code: 'SA', name: 'Arabia Saudita', flag: '🇸🇦' },
+  { code: 'JP', name: 'Japón', flag: '🇯🇵' },
+  { code: 'KR', name: 'Corea del Sur', flag: '🇰🇷' },
+  { code: 'AU', name: 'Australia', flag: '🇦🇺' },
+  { code: 'IN', name: 'India', flag: '🇮🇳' },
+  { code: 'XX', name: 'Otro país', flag: '🌍' }
+];
+
 function initApp() {
   const voteMessiBtn = document.getElementById('voteMessiBtn');
   const voteCristianoBtn = document.getElementById('voteCristianoBtn');
@@ -668,6 +772,18 @@ function initApp() {
   const chatInputRowEl = document.getElementById('chatInputRow');
   const chatInputEl = document.getElementById('chatInput');
   const chatSendBtnEl = document.getElementById('chatSendBtn');
+
+  const onboardModalOverlay = document.getElementById('onboardModalOverlay');
+  const onboardUsernameEl = document.getElementById('onboardUsername');
+  const onboardTeamMessiEl = document.getElementById('onboardTeamMessi');
+  const onboardTeamCristianoEl = document.getElementById('onboardTeamCristiano');
+  const onboardCountryEl = document.getElementById('onboardCountry');
+  const onboardSaveBtn = document.getElementById('onboardSaveBtn');
+  const onboardSkipBtn = document.getElementById('onboardSkipBtn');
+  const onboardSkipLink = document.getElementById('onboardSkipLink');
+  const onboardMsgEl = document.getElementById('onboardMsg');
+  const rankingFilterCountryEl = document.getElementById('rankingFilterCountry');
+  const rankingFilterTeamEl = document.getElementById('rankingFilterTeam');
 
   let firebaseOk = false;
   try {
@@ -700,6 +816,22 @@ function initApp() {
   let currentUser = null;
   let hasVoted = false;
   let pendingVote = null; // equipo elegido antes de iniciar sesión
+  let currentProfile = null; // {username, team, country} guardado en fanProfiles
+  let fanProfilesMap = {}; // uid -> {username, team, country}
+  let onboardSelectedTeam = null;
+  let onboardSkippedThisSession = false;
+
+  function displayNameFor(user) {
+    if (currentProfile && currentProfile.username) return currentProfile.username;
+    return (user && (user.displayName || user.email)) || 'Fan anónimo';
+  }
+
+  function populateCountrySelects() {
+    const opts = COUNTRIES.map(c => `<option value="${c.code}">${c.flag} ${c.name}</option>`).join('');
+    if (onboardCountryEl) onboardCountryEl.innerHTML = '<option value="">Selecciona tu país</option>' + opts;
+    if (rankingFilterCountryEl) rankingFilterCountryEl.innerHTML = '<option value="">Todos los países</option>' + opts;
+  }
+  populateCountrySelects();
 
   function flashEl(el) {
     el.classList.remove('flash');
@@ -933,7 +1065,7 @@ function initApp() {
   function saveTriviaScore(score, total) {
     if (!currentUser) return;
     const uid = currentUser.uid;
-    const name = currentUser.displayName || currentUser.email || 'Fan anónimo';
+    const name = displayNameFor(currentUser);
     const photo = currentUser.photoURL || '';
     db.ref('fanScores/' + uid).transaction((current) => {
       if (!current || score > current.score) {
@@ -970,23 +1102,38 @@ function initApp() {
 
   db.ref('fanScores').on('value', (snap) => {
     const entries = [];
-    snap.forEach((child) => { entries.push(child.val()); });
+    snap.forEach((child) => { entries.push(Object.assign({ uid: child.key }, child.val())); });
     entries.sort((a, b) => (b.score || 0) - (a.score || 0));
     allFanEntries = entries;
 
     rankingListEl.innerHTML = renderRankingRows(entries.slice(0, 10));
     rankingMoreBtn.style.display = entries.length > 0 ? '' : 'none';
 
-    if (rankingModalOverlay.classList.contains('open')) {
-      rankingModalList.innerHTML = renderRankingRows(allFanEntries);
-    }
+    if (rankingModalOverlay.classList.contains('open')) renderRankingModalFiltered();
   }, (err) => {
     console.error('Error leyendo ranking', err);
     rankingListEl.innerHTML = '<p class="ranking-empty">No se pudo cargar el ranking.</p>';
   });
 
+  function renderRankingModalFiltered() {
+    const country = rankingFilterCountryEl.value;
+    const team = rankingFilterTeamEl.value;
+    let entries = allFanEntries;
+    if (country || team) {
+      entries = entries.filter((e) => {
+        const p = fanProfilesMap[e.uid];
+        if (country && (!p || p.country !== country)) return false;
+        if (team && (!p || p.team !== team)) return false;
+        return true;
+      });
+    }
+    rankingModalList.innerHTML = renderRankingRows(entries);
+  }
+
   function openRankingModal() {
-    rankingModalList.innerHTML = renderRankingRows(allFanEntries);
+    rankingFilterCountryEl.value = '';
+    rankingFilterTeamEl.value = '';
+    renderRankingModalFiltered();
     rankingModalOverlay.classList.add('open');
   }
   function closeRankingModal() {
@@ -997,6 +1144,8 @@ function initApp() {
   rankingModalOverlay.addEventListener('click', (e) => {
     if (e.target === rankingModalOverlay) closeRankingModal();
   });
+  rankingFilterCountryEl.addEventListener('change', renderRankingModalFiltered);
+  rankingFilterTeamEl.addEventListener('change', renderRankingModalFiltered);
 
   // --- Chat en vivo: público para leer, requiere sesión para escribir ---
   function fmtChatTime(ts) {
@@ -1062,7 +1211,7 @@ function initApp() {
     const text = chatInputEl.value.trim();
     if (!text) return;
     chatSendBtnEl.disabled = true;
-    const name = currentUser.displayName || currentUser.email || 'Fan anónimo';
+    const name = displayNameFor(currentUser);
     const photo = currentUser.photoURL || '';
     db.ref('chatMessages').push({
       uid: currentUser.uid,
@@ -1088,8 +1237,90 @@ function initApp() {
     }
   });
 
+  // --- Perfil de fan: nombre de usuario, equipo y país (modal al iniciar sesión) ---
+  db.ref('fanProfiles').on('value', (snap) => {
+    const map = {};
+    snap.forEach((child) => { map[child.key] = child.val(); });
+    fanProfilesMap = map;
+    if (currentUser && map[currentUser.uid]) currentProfile = map[currentUser.uid];
+    if (allFanEntries.length && rankingModalOverlay.classList.contains('open')) renderRankingModalFiltered();
+  });
+
+  function updateOnboardSaveState() {
+    const nameOk = onboardUsernameEl.value.trim().length >= 2;
+    onboardSaveBtn.disabled = !(nameOk && onboardSelectedTeam && onboardCountryEl.value);
+  }
+
+  function selectOnboardTeam(team) {
+    onboardSelectedTeam = team;
+    onboardTeamMessiEl.classList.toggle('active', team === 'messi');
+    onboardTeamCristianoEl.classList.toggle('active', team === 'cristiano');
+    updateOnboardSaveState();
+  }
+  onboardTeamMessiEl.addEventListener('click', () => selectOnboardTeam('messi'));
+  onboardTeamCristianoEl.addEventListener('click', () => selectOnboardTeam('cristiano'));
+  onboardUsernameEl.addEventListener('input', updateOnboardSaveState);
+  onboardCountryEl.addEventListener('change', updateOnboardSaveState);
+
+  function openOnboardModal() {
+    onboardUsernameEl.value = (currentUser && currentUser.displayName) ? currentUser.displayName.split(' ')[0] : '';
+    onboardCountryEl.value = '';
+    onboardMsgEl.style.display = 'none';
+    selectOnboardTeam(null);
+    updateOnboardSaveState();
+    onboardModalOverlay.classList.add('open');
+  }
+  function closeOnboardModal() {
+    onboardModalOverlay.classList.remove('open');
+  }
+  onboardSkipBtn.addEventListener('click', () => { onboardSkippedThisSession = true; closeOnboardModal(); });
+  onboardSkipLink.addEventListener('click', () => { onboardSkippedThisSession = true; closeOnboardModal(); });
+
+  onboardSaveBtn.addEventListener('click', () => {
+    if (!currentUser || onboardSaveBtn.disabled) return;
+    const username = onboardUsernameEl.value.trim().slice(0, 24);
+    const team = onboardSelectedTeam;
+    const country = onboardCountryEl.value;
+    onboardSaveBtn.disabled = true;
+    onboardMsgEl.style.display = '';
+    onboardMsgEl.textContent = 'Guardando...';
+    const profile = { username, team, country, photo: currentUser.photoURL || '', updatedAt: firebase.database.ServerValue.TIMESTAMP };
+    db.ref('fanProfiles/' + currentUser.uid).set(profile).then(() => {
+      currentProfile = profile;
+      onboardMsgEl.textContent = '¡Listo! Bienvenido/a.';
+      renderAuthUI();
+      renderChatGate();
+      setTimeout(closeOnboardModal, 500);
+      // Si todavía no votó, su equipo elegido aquí cuenta como su voto.
+      db.ref('votedUsers/' + currentUser.uid).once('value').then((voteSnap) => {
+        if (!voteSnap.exists()) castVote(team);
+      });
+    }).catch((err) => {
+      console.error('Error guardando perfil', err);
+      onboardMsgEl.textContent = 'No se pudo guardar, intenta de nuevo.';
+      onboardSaveBtn.disabled = false;
+    });
+  });
+
+  function checkOnboarding(user) {
+    db.ref('fanProfiles/' + user.uid).once('value').then((snap) => {
+      if (snap.exists()) {
+        currentProfile = snap.val();
+        renderAuthUI();
+        renderChatGate();
+      } else if (!onboardSkippedThisSession) {
+        openOnboardModal();
+      }
+    });
+  }
+
   auth.onAuthStateChanged((user) => {
     currentUser = user;
+    if (!user) {
+      currentProfile = null;
+      onboardSkippedThisSession = false;
+      closeOnboardModal();
+    }
     renderAuthUI();
     renderTriviaGate();
     renderChatGate();
@@ -1102,6 +1333,7 @@ function initApp() {
       return;
     }
 
+    checkOnboarding(user);
     voteStatus.textContent = 'Verificando tu voto...';
     db.ref('votedUsers/' + user.uid).once('value').then((snap) => {
       if (snap.exists()) {
