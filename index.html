@@ -908,6 +908,8 @@ function initApp() {
     clearTimeout(voteStatusTimeout);
     voteStatusTimeout = setTimeout(() => {
       voteStatus.textContent = '';
+      voteMessiBtn.disabled = false;
+      voteCristianoBtn.disabled = false;
     }, 3000);
   }
 
