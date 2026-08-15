@@ -970,39 +970,95 @@ function initApp() {
   voteCristianoBtn.addEventListener('click', () => castVote('cristiano'));
 
   // --- Trivia: ¿cuánto sabes? (requiere sesión iniciada) ---
-  function buildQuestions() {
-    const list = [];
-    DATA.stats.forEach((s) => {
-      if (s.messi === s.ronaldo) return;
-      list.push({
-        text: `¿Quién tiene más "${s.label}"?`,
-        icon: s.icon,
-        correct: s.messi > s.ronaldo ? 'messi' : 'ronaldo',
-        messiVal: s.messi,
-        ronaldoVal: s.ronaldo,
-        compact: !!s.compact
-      });
-    });
-    if (DATA.messi.total !== DATA.ronaldo.total) {
-      list.push({
-        text: '¿Quién anotó más goles en total en su carrera?',
-        icon: '⚽',
-        correct: DATA.messi.total > DATA.ronaldo.total ? 'messi' : 'ronaldo',
-        messiVal: DATA.messi.total,
-        ronaldoVal: DATA.ronaldo.total,
-        compact: false
-      });
+  // --- Banco de preguntas con dificultad + selección diaria determinística ---
+  const TRIVIA_EPOCH = '2026-08-14';
+
+  function todayStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function dayIndexSince(epochStr) {
+    const epoch = new Date(epochStr + 'T00:00:00');
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.max(0, Math.round((today - epoch) / 86400000));
+  }
+
+  function seededRandom(seedStr) {
+    let h = 1779033703 ^ seedStr.length;
+    for (let i = 0; i < seedStr.length; i++) {
+      h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
     }
+    return function () {
+      h = Math.imul(h ^ (h >>> 16), 2246822507);
+      h = Math.imul(h ^ (h >>> 13), 3266489909);
+      h ^= h >>> 16;
+      return (h >>> 0) / 4294967296;
+    };
+  }
+
+  function seededShuffle(arr, rand) {
+    const list = arr.slice();
     for (let i = list.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(rand() * (i + 1));
       [list[i], list[j]] = [list[j], list[i]];
     }
     return list;
   }
 
+  function buildQuestionPool() {
+    const pool = [];
+    const addQ = (text, icon, messiVal, ronaldoVal, compact) => {
+      if (messiVal === ronaldoVal) return;
+      const ratio = Math.abs(messiVal - ronaldoVal) / Math.max(messiVal, ronaldoVal);
+      const diff = ratio < 0.1 ? 3 : (ratio < 0.3 ? 2 : 1);
+      pool.push({ text, icon, correct: messiVal > ronaldoVal ? 'messi' : 'ronaldo', messiVal, ronaldoVal, compact: !!compact, diff });
+    };
+    DATA.stats.forEach((s) => addQ(`¿Quién tiene más "${s.label}"?`, s.icon, s.messi, s.ronaldo, s.compact));
+    addQ('¿Quién anotó más goles en total en su carrera?', '⚽', DATA.messi.total, DATA.ronaldo.total, false);
+    addQ('¿Quién anotó más goles con su club?', '🏟️', DATA.messi.club, DATA.ronaldo.club, false);
+    addQ('¿Quién anotó más goles con su selección?', '🎽', DATA.messi.intl, DATA.ronaldo.intl, false);
+    addQ('¿Quién tiene más suscriptores en YouTube?', '📺', DATA.youtube.messiApprox, DATA.youtube.cr7Approx, true);
+    return pool;
+  }
+
+  function selectDailyQuestions(pool, dayIndex, seedStr) {
+    const rand = seededRandom(seedStr);
+    const easy = seededShuffle(pool.filter((q) => q.diff === 1), rand);
+    const medium = seededShuffle(pool.filter((q) => q.diff === 2), rand);
+    const hard = seededShuffle(pool.filter((q) => q.diff === 3), rand);
+
+    const TOTAL = 5;
+    const hardQuota = Math.min(hard.length, 1 + Math.floor(dayIndex / 3));
+    const mediumQuota = Math.min(medium.length, 1 + Math.floor(dayIndex / 4));
+    let selected = hard.slice(0, hardQuota).concat(medium.slice(0, mediumQuota));
+    let remaining = TOTAL - selected.length;
+    if (remaining > 0) {
+      selected = selected.concat(easy.slice(0, Math.min(remaining, easy.length)));
+      remaining = TOTAL - selected.length;
+    }
+    if (remaining > 0) {
+      const usedTexts = new Set(selected.map((q) => q.text));
+      const rest = pool.filter((q) => !usedTexts.has(q.text));
+      selected = selected.concat(seededShuffle(rest, rand).slice(0, remaining));
+    }
+    // Dentro de la sesión, de más fácil a más difícil
+    selected.sort((a, b) => a.diff - b.diff);
+    return selected;
+  }
+
+  function buildQuestions() {
+    const pool = buildQuestionPool();
+    const dayIndex = dayIndexSince(TRIVIA_EPOCH);
+    return selectDailyQuestions(pool, dayIndex, todayStr());
+  }
+
   let triviaQuestions = [];
   let triviaIndex = 0;
   let triviaScore = 0;
+  let triviaCorrectCount = 0;
   let triviaAnswered = false;
 
   function fmtVal(n, compact) {
@@ -1012,9 +1068,9 @@ function initApp() {
   function renderTriviaGate() {
     if (currentUser) {
       triviaGateEl.style.display = 'none';
+      triviaGameEl.style.display = 'none';
       triviaResultEl.style.display = 'none';
-      triviaGameEl.style.display = '';
-      if (triviaQuestions.length === 0) startTrivia();
+      checkTriviaDaily();
     } else {
       triviaGateEl.style.display = '';
       triviaGameEl.style.display = 'none';
@@ -1028,10 +1084,45 @@ function initApp() {
     }
   }
 
+  function checkTriviaDaily() {
+    const uid = currentUser.uid;
+    db.ref('triviaDaily/' + uid).once('value').then((snap) => {
+      if (!currentUser || currentUser.uid !== uid) return;
+      if (snap.val() === todayStr()) {
+        showTriviaAlreadyPlayed();
+      } else {
+        triviaGameEl.style.display = '';
+        startTrivia();
+      }
+    }).catch((err) => {
+      console.error('Error verificando trivia diaria', err);
+      triviaGameEl.style.display = '';
+      startTrivia();
+    });
+  }
+
+  function showTriviaAlreadyPlayed() {
+    triviaGameEl.style.display = 'none';
+    triviaResultEl.style.display = '';
+    triviaResultEl.innerHTML = `
+      <p class="trivia-final">✅ Ya jugaste la trivia de hoy.</p>
+      <p class="trivia-final" id="triviaTodayScore"></p>
+      <p class="trivia-saving">Volvé mañana para preguntas nuevas y más difíciles.</p>
+    `;
+    if (currentUser) {
+      db.ref('fanScores/' + currentUser.uid).once('value').then((snap) => {
+        const data = snap.val();
+        const el = document.getElementById('triviaTodayScore');
+        if (data && el) el.innerHTML = `Tu puntaje: <strong>${data.score} puntos</strong>.`;
+      });
+    }
+  }
+
   function startTrivia() {
     triviaQuestions = buildQuestions();
     triviaIndex = 0;
     triviaScore = 0;
+    triviaCorrectCount = 0;
     triviaResultEl.style.display = 'none';
     triviaGameEl.style.display = '';
     renderTriviaQuestion();
@@ -1056,7 +1147,7 @@ function initApp() {
     triviaAnswered = true;
     const q = triviaQuestions[triviaIndex];
     const correct = team === q.correct;
-    if (correct) triviaScore++;
+    if (correct) { triviaScore += 10; triviaCorrectCount++; }
 
     triviaOptionsEl.querySelectorAll('.trivia-opt').forEach((btn) => {
       btn.disabled = true;
@@ -1081,12 +1172,12 @@ function initApp() {
     triviaGameEl.style.display = 'none';
     triviaResultEl.style.display = '';
     triviaResultEl.innerHTML = `
-      <p class="trivia-final">Terminaste con <strong>${triviaScore} de ${triviaQuestions.length}</strong> respuestas correctas.</p>
-      <button class="signin-btn" id="triviaRetryBtn" type="button">Jugar de nuevo</button>
+      <p class="trivia-final">Terminaste con <strong>${triviaCorrectCount} de ${triviaQuestions.length}</strong> respuestas correctas · <strong>${triviaScore} puntos</strong>.</p>
       <p class="trivia-saving" id="triviaSaving">Guardando tu puntaje...</p>
+      <p class="trivia-final">Ya jugaste la trivia de hoy. ¡Volvé mañana para preguntas nuevas y más difíciles!</p>
     `;
-    document.getElementById('triviaRetryBtn').addEventListener('click', startTrivia);
-    saveTriviaScore(triviaScore, triviaQuestions.length);
+    saveTriviaScore(triviaScore, triviaQuestions.length * 10);
+    if (currentUser) db.ref('triviaDaily/' + currentUser.uid).set(todayStr());
   }
 
   function saveTriviaScore(score, total) {
