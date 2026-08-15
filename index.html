@@ -819,6 +819,7 @@ function initApp() {
   let currentUser = null;
   let hasVoted = false;
   let pendingVote = null; // equipo elegido antes de iniciar sesión
+  let voteStatusTimeout = null;
   let currentProfile = null; // {username, team, country} guardado en fanProfiles
   let fanProfilesMap = {}; // uid -> {username, team, country}
   let onboardSelectedTeam = null;
@@ -904,6 +905,10 @@ function initApp() {
     voteCristianoBtn.disabled = true;
     const teamLabel = team === 'messi' ? 'Team Messi' : 'Team Cristiano';
     voteStatus.textContent = `Ya votaste por ${teamLabel}. ¡Gracias por participar!`;
+    clearTimeout(voteStatusTimeout);
+    voteStatusTimeout = setTimeout(() => {
+      voteStatus.textContent = '';
+    }, 3000);
   }
 
   function castVote(team) {
