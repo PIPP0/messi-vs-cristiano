@@ -1237,7 +1237,7 @@ function initApp() {
   db.ref('fanScores').on('value', (snap) => {
     const entries = [];
     snap.forEach((child) => { entries.push(Object.assign({ uid: child.key }, child.val())); });
-    entries.sort((a, b) => (b.score || 0) - (a.score || 0));
+    entries.sort((a, b) => scaledFanScore(b).score - scaledFanScore(a).score);
     allFanEntries = entries;
 
     rankingListEl.innerHTML = renderRankingRows(entries.slice(0, 10));
