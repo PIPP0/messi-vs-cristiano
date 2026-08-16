@@ -295,7 +295,12 @@
   .trivia-opt.correct{background:linear-gradient(135deg,#1f7a3d,#2fae5c);color:#fff}
   .trivia-opt.wrong{background:linear-gradient(135deg,#7a1f2b,#ae2f3f);color:#fff}
   .trivia-final{text-align:center;font-size:.78rem;margin-bottom:8px;line-height:1.4}
-  .trivia-saving{margin-top:7px;font-size:.66rem;color:var(--muted);text-align:center}
+    .trivia-start-btn{
+    background:linear-gradient(120deg,#1f9d4a,#2fbf63);color:#fff;border:none;border-radius:10px;
+    padding:9px 22px;font-size:.8rem;font-weight:800;cursor:pointer;font-family:inherit;margin-top:4px;
+    box-shadow:0 3px 10px rgba(47,191,99,.3);transition:transform .15s ease, box-shadow .2s ease;
+  }
+  .trivia-start-btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(47,191,99,.4)}
   #triviaResult{text-align:center}
   #triviaGate{text-align:center;display:flex;flex-direction:column;align-items:center;gap:7px}
 
@@ -522,7 +527,7 @@
       <div class="panel-card" style="margin-top:14px">
         <div class="panel-head">
           <span class="panel-title">🧠 Trivia</span>
-          <span class="panel-sub">inicia sesión para jugar</span>
+          <span class="panel-sub" id="triviaPanelSub">inicia sesión para jugar</span>
         </div>
         <div id="triviaGate"></div>
         <div id="triviaGame" style="display:none">
@@ -2170,13 +2175,16 @@ function initApp() {
     return compact ? formatCompact(n) : n.toLocaleString('es-ES');
   }
 
-  function renderTriviaGate() {
+    function renderTriviaGate() {
+    const subEl = document.getElementById('triviaPanelSub');
     if (currentUser) {
+      if (subEl) subEl.textContent = '1 vez al día';
       triviaGateEl.style.display = 'none';
       triviaGameEl.style.display = 'none';
       triviaResultEl.style.display = 'none';
       checkTriviaDaily();
     } else {
+      if (subEl) subEl.textContent = 'inicia sesión para jugar';
       triviaGateEl.style.display = '';
       triviaGameEl.style.display = 'none';
       triviaResultEl.style.display = 'none';
@@ -2196,17 +2204,26 @@ function initApp() {
       if (snap.val() === todayStr()) {
         showTriviaAlreadyPlayed();
       } else {
-        triviaGameEl.style.display = '';
-        startTrivia();
+        renderTriviaStart();
       }
     }).catch((err) => {
       console.error('Error verificando trivia diaria', err);
-      triviaGameEl.style.display = '';
-      startTrivia();
+      renderTriviaStart();
     });
   }
 
-  function showTriviaAlreadyPlayed() {
+  function renderTriviaStart() {
+    triviaGameEl.style.display = 'none';
+    triviaResultEl.style.display = '';
+    triviaResultEl.innerHTML = `
+      <p class="trivia-final">5 preguntas · 10 puntos por respuesta correcta.</p>
+      <button class="trivia-start-btn" id="triviaStartBtn" type="button">Comenzar</button>
+    `;
+    const btn = document.getElementById('triviaStartBtn');
+    if (btn) btn.addEventListener('click', startTrivia);
+  }
+
+function showTriviaAlreadyPlayed() {
     triviaGameEl.style.display = 'none';
     triviaResultEl.style.display = '';
     triviaResultEl.innerHTML = `
