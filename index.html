@@ -245,7 +245,7 @@
   .game-btn{background:var(--panel2);color:var(--text);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 16px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;margin-top:12px}
   .game-btn:hover{background:rgba(255,255,255,.08)}
   .game-btn.primary{background:linear-gradient(120deg,var(--messi-bg1),var(--cr7-bg1));border:none;color:#fff}
-  .pen-canvas{display:block;margin:8px auto 4px;border-radius:10px;max-width:100%;height:auto}
+  .pen-svg{display:block;margin:8px auto 4px;border-radius:10px;max-width:100%;height:auto;background:#0c3419}
   .pen-goal{max-width:320px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
   .pen-zone{background:var(--panel2);border:2px solid rgba(255,255,255,.1);border-radius:10px;padding:20px 0;font-size:1.5rem;cursor:pointer;transition:.15s;font-family:inherit}
   .pen-zone:hover{border-color:var(--messi-accent)}
@@ -260,14 +260,13 @@
   .mem-card-back{background:linear-gradient(120deg,var(--messi-bg1),var(--cr7-bg1));transform:rotateY(180deg);font-size:1.4rem}
   .mem-card.matched{opacity:.55}
   .mem-card.matched .mem-card-inner{cursor:default}
-  .rx-canvas{display:block;margin:8px auto 4px;border-radius:10px;cursor:pointer;max-width:100%;height:auto}
+  .rx-svg{display:block;margin:8px auto 4px;border-radius:10px;cursor:pointer;max-width:100%;height:auto;background:#0a2c16}
   .rx-msg{font-size:.82rem;color:var(--muted);margin-top:6px;min-height:1.4em}
   .ttt-wrap{position:relative;max-width:210px;margin:0 auto}
   .ttt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
   .ttt-cell{aspect-ratio:1;background:var(--panel2);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(255,255,255,.1)}
-  .ttt-mark{width:72%;height:72%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.05rem;color:#fff;animation:popIn .25s cubic-bezier(.34,1.56,.64,1) both}
-  .ttt-mark.m{background:linear-gradient(135deg,var(--messi-bg2),var(--messi-bg1))}
-  .ttt-mark.c{background:linear-gradient(135deg,var(--cr7-bg2),var(--cr7-bg1))}
+  .ttt-mark{width:70%;height:70%;display:flex;align-items:center;justify-content:center;animation:popIn .25s cubic-bezier(.34,1.56,.64,1) both;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+  .ttt-mark svg{width:100%;height:100%;display:block}
   .ttt-win-line{position:absolute;height:5px;border-radius:3px;background:linear-gradient(90deg,var(--messi-accent),var(--cr7-accent));transform-origin:0 50%;opacity:0;transition:opacity .2s;pointer-events:none}
   .ttt-win-line.show{opacity:1}
 
@@ -745,6 +744,37 @@ function initGames() {
   });
 }
 
+function svgBallInner() {
+  return `<circle r="9" fill="url(#ballGrad)" stroke="#2b2b2b" stroke-width="1"/>
+    <polygon points="0,-3 2.85,-0.93 1.76,2.43 -1.76,2.43 -2.85,-0.93" fill="#222"/>
+    <line x1="0" y1="-3" x2="0" y2="-9" stroke="#222" stroke-width="1"/>
+    <line x1="2.85" y1="-0.93" x2="8.56" y2="-2.78" stroke="#222" stroke-width="1"/>
+    <line x1="1.76" y1="2.43" x2="5.29" y2="7.28" stroke="#222" stroke-width="1"/>
+    <line x1="-1.76" y1="2.43" x2="-5.29" y2="7.28" stroke="#222" stroke-width="1"/>
+    <line x1="-2.85" y1="-0.93" x2="-8.56" y2="-2.78" stroke="#222" stroke-width="1"/>`;
+}
+function svgKeeperInner() {
+  return `<path d="M-7,-2 Q-16,-8 -18,-17" stroke="#12121f" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M7,-2 Q16,-8 18,-17" stroke="#12121f" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <circle cx="-18" cy="-17" r="4" fill="#fcbf49"/>
+    <circle cx="18" cy="-17" r="4" fill="#fcbf49"/>
+    <path d="M-6,18 L-8,30" stroke="#12121f" stroke-width="5" stroke-linecap="round"/>
+    <path d="M6,18 L8,30" stroke="#12121f" stroke-width="5" stroke-linecap="round"/>
+    <rect x="-10" y="29" width="6" height="4" rx="2" fill="#161616"/>
+    <rect x="4" y="29" width="6" height="4" rx="2" fill="#161616"/>
+    <path d="M-8,-3 Q0,-13 8,-3 L8,17 Q0,21 -8,17 Z" fill="#1b3a63"/>
+    <path d="M-8,-3 Q0,-13 8,-3" fill="none" stroke="#0d2038" stroke-width="1.2"/>
+    <circle cx="0" cy="-15" r="6" fill="#e8b48a"/>
+    <path d="M-6,-19 Q0,-24 6,-19 Q6,-16 0,-15 Q-6,-16 -6,-19Z" fill="#2b1a12"/>`;
+}
+function jerseyMarkSVG(number, isMessi) {
+  const a = isMessi ? 'var(--messi-bg1)' : 'var(--cr7-bg1)';
+  const b = isMessi ? 'var(--messi-bg2)' : 'var(--cr7-bg2)';
+  return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+    <path d="M13,3 L4,9 L8,16 L13,12.5 L13,37 L27,37 L27,12.5 L32,16 L36,9 L27,3 Q23.5,7.5 20,7.5 Q16.5,7.5 13,3Z" fill="${a}" stroke="${b}" stroke-width="1.2"/>
+    <text x="20" y="27" text-anchor="middle" font-size="13" font-weight="900" fill="#fff" font-family="inherit">${number}</text>
+  </svg>`;
+}
 function renderPenaltyGame(stage) {
   let round = 0, goals = 0;
   const TOTAL = 5;
@@ -752,7 +782,36 @@ function renderPenaltyGame(stage) {
     <div class="game-box">
       <div class="game-msg">Elegí a qué palo patear. El arquero también elige uno: si no coinciden, ¡es gol!</div>
       <div class="game-score" id="penScore">Penal 1 de ${TOTAL} · Goles: 0</div>
-      <canvas class="pen-canvas" id="penCanvas" width="360" height="220"></canvas>
+      <svg class="pen-svg" id="penSvg" viewBox="0 0 360 220" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="pitchGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1c7a3c"/>
+            <stop offset="1" stop-color="#0c3419"/>
+          </linearGradient>
+          <radialGradient id="ballGrad" cx="35%" cy="30%" r="75%">
+            <stop offset="0" stop-color="#ffffff"/>
+            <stop offset="1" stop-color="#c7c7c7"/>
+          </radialGradient>
+        </defs>
+        <rect width="360" height="220" fill="url(#pitchGrad)"/>
+        <g opacity=".08" fill="#fff">
+          <rect x="0" y="0" width="30" height="220"/><rect x="60" y="0" width="30" height="220"/>
+          <rect x="120" y="0" width="30" height="220"/><rect x="180" y="0" width="30" height="220"/>
+          <rect x="240" y="0" width="30" height="220"/><rect x="300" y="0" width="30" height="220"/>
+        </g>
+        <ellipse cx="180" cy="210" rx="150" ry="8" fill="rgba(0,0,0,.25)"/>
+        <rect x="40" y="26" width="280" height="94" fill="none" stroke="#fff" stroke-width="4"/>
+        <g stroke="rgba(255,255,255,.4)" stroke-width="1">
+          <line x1="75" y1="26" x2="75" y2="120"/><line x1="110" y1="26" x2="110" y2="120"/>
+          <line x1="145" y1="26" x2="145" y2="120"/><line x1="180" y1="26" x2="180" y2="120"/>
+          <line x1="215" y1="26" x2="215" y2="120"/><line x1="250" y1="26" x2="250" y2="120"/>
+          <line x1="285" y1="26" x2="285" y2="120"/>
+          <line x1="40" y1="49" x2="320" y2="49"/><line x1="40" y1="72" x2="320" y2="72"/>
+          <line x1="40" y1="95" x2="320" y2="95"/>
+        </g>
+        <g id="penKeeper" transform="translate(180,94)">${svgKeeperInner()}</g>
+        <g id="penBall" transform="translate(180,198)">${svgBallInner()}</g>
+      </svg>
       <div class="pen-goal" id="penGoal">
         <button class="pen-zone" data-zone="0" type="button">⬅️</button>
         <button class="pen-zone" data-zone="1" type="button">⬆️</button>
@@ -762,104 +821,41 @@ function renderPenaltyGame(stage) {
       <button class="game-btn primary" id="penRestart" type="button" style="display:none">Jugar de nuevo</button>
     </div>
   `;
-  const canvas = document.getElementById('penCanvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const goalX = 40, goalY = 28, goalW = W - 80, goalH = 92;
-  const spotX = W / 2, spotY = H - 22;
+  const keeperEl = document.getElementById('penKeeper');
+  const ballEl = document.getElementById('penBall');
+  const goalX = 40, goalY = 26, goalW = 280, goalH = 94;
+  const spotX = 180, spotY = 198;
   const zoneX = [goalX + goalW * 0.18, goalX + goalW * 0.5, goalX + goalW * 0.82];
   const zoneY = goalY + goalH * 0.55;
-  let keeperX = zoneX[1], keeperY = goalY + goalH * 0.72;
-
-  function drawField() {
-    const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#0d3d1f');
-    g.addColorStop(1, '#145a2c');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
-    ctx.strokeStyle = 'rgba(255,255,255,.35)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(0, H - 6);
-    ctx.lineTo(W, H - 6);
-    ctx.stroke();
-  }
-  function drawGoal() {
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(goalX, goalY, goalW, goalH);
-    ctx.strokeStyle = 'rgba(255,255,255,.25)';
-    ctx.lineWidth = 1;
-    for (let i = 1; i < 8; i++) {
-      const x = goalX + (goalW / 8) * i;
-      ctx.beginPath(); ctx.moveTo(x, goalY); ctx.lineTo(x, goalY + goalH); ctx.stroke();
-    }
-    for (let i = 1; i < 4; i++) {
-      const y = goalY + (goalH / 4) * i;
-      ctx.beginPath(); ctx.moveTo(goalX, y); ctx.lineTo(goalX + goalW, y); ctx.stroke();
-    }
-  }
-  function drawKeeper(x, y, scale) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(scale, scale);
-    ctx.fillStyle = '#1a1a2e';
-    ctx.fillRect(-9, -6, 18, 24);
-    ctx.fillStyle = '#e8b48a';
-    ctx.beginPath(); ctx.arc(0, -13, 7, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#1a1a2e';
-    ctx.lineWidth = 6;
-    ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(-9, -2); ctx.lineTo(-20, -13); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(9, -2); ctx.lineTo(20, -13); ctx.stroke();
-    ctx.fillStyle = '#fcbf49';
-    ctx.beginPath(); ctx.arc(-20, -13, 5, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(20, -13, 5, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-  }
-  function drawBall(x, y, r) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.fillStyle = '#fff';
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#333';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    ctx.fillStyle = '#222';
-    ctx.beginPath(); ctx.arc(x, y, Math.max(1, r * 0.35), 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-  }
-  function renderStatic() {
-    drawField();
-    drawGoal();
-    drawKeeper(keeperX, keeperY, 1);
-    drawBall(spotX, spotY, 9);
-  }
-  renderStatic();
+  const keeperBaseX = 180, keeperBaseY = 94;
 
   const scoreEl = document.getElementById('penScore');
   const resultEl = document.getElementById('penResult');
   const zones = stage.querySelectorAll('.pen-zone');
   const restartBtn = document.getElementById('penRestart');
 
+  function resetScene() {
+    keeperEl.setAttribute('transform', `translate(${keeperBaseX},${keeperBaseY})`);
+    ballEl.setAttribute('transform', `translate(${spotX},${spotY})`);
+  }
+
   function animateShot(shotZone, keeperZoneIdx, isGoal, done) {
     const duration = 550;
     const t0 = performance.now();
     const targetX = zoneX[shotZone];
     const keeperTargetX = zoneX[keeperZoneIdx];
+    const dir = keeperTargetX === keeperBaseX ? 0 : (keeperTargetX < keeperBaseX ? -1 : 1);
     function frame(now) {
       const t = Math.min(1, (now - t0) / duration);
       const ease = 1 - Math.pow(1 - t, 2);
-      drawField();
-      drawGoal();
-      const kx = keeperX + (keeperTargetX - keeperX) * ease;
-      drawKeeper(kx, keeperY, 1 - ease * 0.08);
+      const kx = keeperBaseX + (keeperTargetX - keeperBaseX) * ease;
+      const rot = dir * ease * 28;
+      keeperEl.setAttribute('transform', `translate(${kx},${keeperBaseY}) rotate(${rot})`);
       const endX = isGoal ? targetX : keeperTargetX;
       const bx = spotX + (endX - spotX) * ease;
       const by = spotY + (zoneY - spotY) * ease;
-      const r = 9 - ease * 4;
-      drawBall(bx, by, r);
+      const scale = 1 - ease * 0.4;
+      ballEl.setAttribute('transform', `translate(${bx},${by}) scale(${scale})`);
       if (t < 1) requestAnimationFrame(frame);
       else done();
     }
@@ -888,8 +884,7 @@ function renderPenaltyGame(stage) {
           scoreEl.textContent = `Penal ${round + 1} de ${TOTAL} · Goles: ${goals}`;
           resultEl.textContent = '';
           zones.forEach((b) => { b.disabled = false; });
-          keeperX = zoneX[1];
-          renderStatic();
+          resetScene();
         }
       }, 900);
     });
@@ -972,60 +967,61 @@ function renderReflexGame(stage) {
   let rafId = null;
   let spawnTime = 0;
   const travelDuration = 850;
-  let ballX = 0;
+  let ballX = 130;
   let best = Number(localStorage.getItem('reflexBest') || 0) || null;
 
   stage.innerHTML = `
     <div class="game-box">
       <div class="game-msg">Hacé clic para atajar el remate apenas la pelota entre al arco. ¡No te adelantes!</div>
       <div class="game-score" id="rxScore">${best ? 'Mejor tiempo: ' + best + ' ms' : 'Todavía sin marca'}</div>
-      <canvas class="rx-canvas" id="rxCanvas" width="260" height="170"></canvas>
+      <svg class="rx-svg" id="rxSvg" viewBox="0 0 260 170" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="rxPitchGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#12522a"/>
+            <stop offset="1" stop-color="#0a2c16"/>
+          </linearGradient>
+          <radialGradient id="ballGrad" cx="35%" cy="30%" r="75%">
+            <stop offset="0" stop-color="#ffffff"/>
+            <stop offset="1" stop-color="#c7c7c7"/>
+          </radialGradient>
+        </defs>
+        <rect width="260" height="170" fill="url(#rxPitchGrad)"/>
+        <rect x="20" y="15" width="220" height="70" fill="none" stroke="#fff" stroke-width="3"/>
+        <g stroke="rgba(255,255,255,.3)" stroke-width="1">
+          <line x1="56" y1="15" x2="56" y2="85"/><line x1="92" y1="15" x2="92" y2="85"/>
+          <line x1="128" y1="15" x2="128" y2="85"/><line x1="164" y1="15" x2="164" y2="85"/>
+          <line x1="200" y1="15" x2="200" y2="85"/>
+          <line x1="20" y1="38" x2="240" y2="38"/><line x1="20" y1="61" x2="240" y2="61"/>
+        </g>
+        <g id="rxGlove" transform="translate(130,150)">
+          <path d="M-16,9 Q-18,-7 -9,-13 Q-7,-18 -2,-16 Q2,-20 6,-15 Q11,-16 13,-9 Q18,-5 16,6 Q18,13 11,16 L-11,16 Q-18,14 -16,9Z" fill="#fcbf49" stroke="#b5860a" stroke-width="1.3"/>
+          <line x1="-9" y1="-13" x2="-8" y2="2" stroke="#b5860a" stroke-width="1"/>
+          <line x1="-2" y1="-16" x2="-1" y2="2" stroke="#b5860a" stroke-width="1"/>
+          <line x1="6" y1="-15" x2="6" y2="2" stroke="#b5860a" stroke-width="1"/>
+          <rect x="-13" y="15" width="26" height="7" rx="3" fill="#1a1a2e"/>
+        </g>
+        <g id="rxBall" transform="translate(130,35) scale(0.6)" opacity="0">${svgBallInner()}</g>
+      </svg>
       <div class="rx-msg" id="rxMsg">Hacé clic para empezar</div>
     </div>
   `;
-  const canvas = document.getElementById('rxCanvas');
-  const ctx = canvas.getContext('2d');
+  const svgEl = document.getElementById('rxSvg');
+  const ballEl = document.getElementById('rxBall');
   const scoreEl = document.getElementById('rxScore');
   const msgEl = document.getElementById('rxMsg');
-  const W = canvas.width, H = canvas.height;
-  const goalX = 20, goalY = 15, goalW = W - 40, goalH = 70;
-
-  function drawScene(ballVisible, bx, by, br) {
-    ctx.fillStyle = '#0f2e1c';
-    ctx.fillRect(0, 0, W, H);
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(goalX, goalY, goalW, goalH);
-    ctx.strokeStyle = 'rgba(255,255,255,.2)';
-    ctx.lineWidth = 1;
-    for (let i = 1; i < 6; i++) {
-      const x = goalX + (goalW / 6) * i;
-      ctx.beginPath(); ctx.moveTo(x, goalY); ctx.lineTo(x, goalY + goalH); ctx.stroke();
-    }
-    ctx.font = '26px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('🧤', W / 2, H - 8);
-    if (ballVisible) {
-      ctx.beginPath();
-      ctx.fillStyle = '#fff';
-      ctx.arc(bx, by, br, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#333';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-  }
-  drawScene(false);
+  const goalX = 20, goalY = 15, goalW = 220;
 
   function startWait() {
     state = 'waiting';
     msgEl.textContent = 'Esperá...';
+    ballEl.setAttribute('opacity', '0');
     const delay = 900 + Math.random() * 2200;
     delayTimeout = setTimeout(() => {
       state = 'active';
       spawnTime = performance.now();
-      ballX = goalX + 20 + Math.random() * (goalW - 40);
+      ballX = goalX + 24 + Math.random() * (goalW - 48);
       msgEl.textContent = '¡AHORA! Hacé clic';
+      ballEl.setAttribute('opacity', '1');
       animateBall();
     }, delay);
   }
@@ -1034,9 +1030,9 @@ function renderReflexGame(stage) {
     function frame(now) {
       if (state !== 'active') return;
       const t = Math.min(1, (now - spawnTime) / travelDuration);
-      const by = goalY + 20 + t * (H - 30 - (goalY + 20));
-      const br = 6 + t * 10;
-      drawScene(true, ballX, by, br);
+      const by = goalY + 18 + t * (140 - (goalY + 18));
+      const scale = 0.45 + t * 0.85;
+      ballEl.setAttribute('transform', `translate(${ballX},${by}) scale(${scale})`);
       if (t < 1) {
         rafId = requestAnimationFrame(frame);
       } else {
@@ -1047,9 +1043,8 @@ function renderReflexGame(stage) {
     rafId = requestAnimationFrame(frame);
   }
 
-  canvas.addEventListener('click', () => {
+  svgEl.addEventListener('click', () => {
     if (state === 'idle' || state === 'done') {
-      drawScene(false);
       startWait();
     } else if (state === 'waiting') {
       clearTimeout(delayTimeout);
@@ -1059,6 +1054,7 @@ function renderReflexGame(stage) {
       const reaction = Math.round(performance.now() - spawnTime);
       state = 'done';
       if (rafId) cancelAnimationFrame(rafId);
+      ballEl.setAttribute('opacity', '0');
       msgEl.textContent = `🧤 ¡Atajada en ${reaction} ms! Hacé clic para jugar de nuevo`;
       if (!best || reaction < best) {
         best = reaction;
@@ -1116,8 +1112,8 @@ function renderTicTacToe(stage) {
   function paint() {
     cells.forEach((cell, i) => {
       let mark = '';
-      if (board[i] === 'M') mark = '<span class="ttt-mark m">10</span>';
-      else if (board[i] === 'C') mark = '<span class="ttt-mark c">7</span>';
+      if (board[i] === 'M') mark = `<span class="ttt-mark m">${jerseyMarkSVG('10', true)}</span>`;
+      else if (board[i] === 'C') mark = `<span class="ttt-mark c">${jerseyMarkSVG('7', false)}</span>`;
       cell.innerHTML = mark;
     });
   }
