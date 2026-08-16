@@ -245,22 +245,32 @@
   .game-btn{background:var(--panel2);color:var(--text);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 16px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;margin-top:12px}
   .game-btn:hover{background:rgba(255,255,255,.08)}
   .game-btn.primary{background:linear-gradient(120deg,var(--messi-bg1),var(--cr7-bg1));border:none;color:#fff}
+  .pen-canvas{display:block;margin:8px auto 4px;border-radius:10px;max-width:100%;height:auto}
   .pen-goal{max-width:320px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
   .pen-zone{background:var(--panel2);border:2px solid rgba(255,255,255,.1);border-radius:10px;padding:20px 0;font-size:1.5rem;cursor:pointer;transition:.15s;font-family:inherit}
   .pen-zone:hover{border-color:var(--messi-accent)}
   .pen-zone:disabled{opacity:.5;cursor:default}
   .pen-result{font-size:.95rem;font-weight:800;min-height:1.4em;margin:10px 0 0}
   .mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:320px;margin:0 auto}
-  .mem-card{aspect-ratio:1;background:var(--panel2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;cursor:pointer;border:1px solid rgba(255,255,255,.1);transition:.2s}
-  .mem-card.flipped,.mem-card.matched{background:linear-gradient(120deg,var(--messi-bg1),var(--cr7-bg1))}
-  .mem-card.matched{opacity:.5;cursor:default}
-  .rx-box{max-width:280px;height:170px;margin:0 auto;background:var(--panel2);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:.82rem;color:var(--muted);cursor:pointer;border:2px dashed rgba(255,255,255,.15);text-align:center;padding:0 16px}
-  .rx-box.ready{border-color:var(--cr7-accent);border-style:solid;color:var(--text)}
-  .rx-box .ball{font-size:2.4rem}
-  .ttt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:210px;margin:0 auto}
-  .ttt-cell{aspect-ratio:1;background:var(--panel2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:900;cursor:pointer;border:1px solid rgba(255,255,255,.1)}
-  .ttt-cell.m{color:var(--messi-bg1)}
-  .ttt-cell.c{color:var(--cr7-accent)}
+  .mem-card{aspect-ratio:1;cursor:pointer;perspective:600px}
+  .mem-card-inner{position:relative;width:100%;height:100%;transition:transform .45s cubic-bezier(.2,.8,.3,1.1);transform-style:preserve-3d}
+  .mem-card.flipped .mem-card-inner{transform:rotateY(180deg)}
+  .mem-card-front,.mem-card-back{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:10px;backface-visibility:hidden;border:1px solid rgba(255,255,255,.1)}
+  .mem-card-front{background:linear-gradient(135deg,var(--panel2),#2a3040);font-size:1.1rem;opacity:.5}
+  .mem-card-back{background:linear-gradient(120deg,var(--messi-bg1),var(--cr7-bg1));transform:rotateY(180deg);font-size:1.4rem}
+  .mem-card.matched{opacity:.55}
+  .mem-card.matched .mem-card-inner{cursor:default}
+  .rx-canvas{display:block;margin:8px auto 4px;border-radius:10px;cursor:pointer;max-width:100%;height:auto}
+  .rx-msg{font-size:.82rem;color:var(--muted);margin-top:6px;min-height:1.4em}
+  .ttt-wrap{position:relative;max-width:210px;margin:0 auto}
+  .ttt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .ttt-cell{aspect-ratio:1;background:var(--panel2);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(255,255,255,.1)}
+  .ttt-mark{width:72%;height:72%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.05rem;color:#fff;animation:popIn .25s cubic-bezier(.34,1.56,.64,1) both}
+  .ttt-mark.m{background:linear-gradient(135deg,var(--messi-bg2),var(--messi-bg1))}
+  .ttt-mark.c{background:linear-gradient(135deg,var(--cr7-bg2),var(--cr7-bg1))}
+  .ttt-win-line{position:absolute;height:5px;border-radius:3px;background:linear-gradient(90deg,var(--messi-accent),var(--cr7-accent));transform-origin:0 50%;opacity:0;transition:opacity .2s;pointer-events:none}
+  .ttt-win-line.show{opacity:1}
+
 
   /* Interesting stats grid */
   .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:12px}
@@ -742,6 +752,7 @@ function renderPenaltyGame(stage) {
     <div class="game-box">
       <div class="game-msg">Elegí a qué palo patear. El arquero también elige uno: si no coinciden, ¡es gol!</div>
       <div class="game-score" id="penScore">Penal 1 de ${TOTAL} · Goles: 0</div>
+      <canvas class="pen-canvas" id="penCanvas" width="360" height="220"></canvas>
       <div class="pen-goal" id="penGoal">
         <button class="pen-zone" data-zone="0" type="button">⬅️</button>
         <button class="pen-zone" data-zone="1" type="button">⬆️</button>
@@ -751,38 +762,142 @@ function renderPenaltyGame(stage) {
       <button class="game-btn primary" id="penRestart" type="button" style="display:none">Jugar de nuevo</button>
     </div>
   `;
+  const canvas = document.getElementById('penCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const goalX = 40, goalY = 28, goalW = W - 80, goalH = 92;
+  const spotX = W / 2, spotY = H - 22;
+  const zoneX = [goalX + goalW * 0.18, goalX + goalW * 0.5, goalX + goalW * 0.82];
+  const zoneY = goalY + goalH * 0.55;
+  let keeperX = zoneX[1], keeperY = goalY + goalH * 0.72;
+
+  function drawField() {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#0d3d1f');
+    g.addColorStop(1, '#145a2c');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = 'rgba(255,255,255,.35)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, H - 6);
+    ctx.lineTo(W, H - 6);
+    ctx.stroke();
+  }
+  function drawGoal() {
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(goalX, goalY, goalW, goalH);
+    ctx.strokeStyle = 'rgba(255,255,255,.25)';
+    ctx.lineWidth = 1;
+    for (let i = 1; i < 8; i++) {
+      const x = goalX + (goalW / 8) * i;
+      ctx.beginPath(); ctx.moveTo(x, goalY); ctx.lineTo(x, goalY + goalH); ctx.stroke();
+    }
+    for (let i = 1; i < 4; i++) {
+      const y = goalY + (goalH / 4) * i;
+      ctx.beginPath(); ctx.moveTo(goalX, y); ctx.lineTo(goalX + goalW, y); ctx.stroke();
+    }
+  }
+  function drawKeeper(x, y, scale) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    ctx.fillStyle = '#1a1a2e';
+    ctx.fillRect(-9, -6, 18, 24);
+    ctx.fillStyle = '#e8b48a';
+    ctx.beginPath(); ctx.arc(0, -13, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#1a1a2e';
+    ctx.lineWidth = 6;
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-9, -2); ctx.lineTo(-20, -13); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(9, -2); ctx.lineTo(20, -13); ctx.stroke();
+    ctx.fillStyle = '#fcbf49';
+    ctx.beginPath(); ctx.arc(-20, -13, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(20, -13, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+  function drawBall(x, y, r) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.fillStyle = '#fff';
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = '#222';
+    ctx.beginPath(); ctx.arc(x, y, Math.max(1, r * 0.35), 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+  function renderStatic() {
+    drawField();
+    drawGoal();
+    drawKeeper(keeperX, keeperY, 1);
+    drawBall(spotX, spotY, 9);
+  }
+  renderStatic();
+
   const scoreEl = document.getElementById('penScore');
   const resultEl = document.getElementById('penResult');
   const zones = stage.querySelectorAll('.pen-zone');
   const restartBtn = document.getElementById('penRestart');
 
+  function animateShot(shotZone, keeperZoneIdx, isGoal, done) {
+    const duration = 550;
+    const t0 = performance.now();
+    const targetX = zoneX[shotZone];
+    const keeperTargetX = zoneX[keeperZoneIdx];
+    function frame(now) {
+      const t = Math.min(1, (now - t0) / duration);
+      const ease = 1 - Math.pow(1 - t, 2);
+      drawField();
+      drawGoal();
+      const kx = keeperX + (keeperTargetX - keeperX) * ease;
+      drawKeeper(kx, keeperY, 1 - ease * 0.08);
+      const endX = isGoal ? targetX : keeperTargetX;
+      const bx = spotX + (endX - spotX) * ease;
+      const by = spotY + (zoneY - spotY) * ease;
+      const r = 9 - ease * 4;
+      drawBall(bx, by, r);
+      if (t < 1) requestAnimationFrame(frame);
+      else done();
+    }
+    requestAnimationFrame(frame);
+  }
+
   zones.forEach((btn) => btn.addEventListener('click', () => {
     if (round >= TOTAL) return;
     zones.forEach((b) => { b.disabled = true; });
     const shot = Number(btn.dataset.zone);
-    const keeper = Math.floor(Math.random() * 3);
-    const isGoal = shot !== keeper || Math.random() < 0.15;
+    const keeperZoneIdx = Math.floor(Math.random() * 3);
+    const isGoal = shot !== keeperZoneIdx || Math.random() < 0.15;
     round++;
-    if (isGoal) { goals++; resultEl.textContent = '⚽ ¡GOOOL!'; }
-    else { resultEl.textContent = '🧤 ¡Atajada del arquero!'; }
-    setTimeout(() => {
-      if (round >= TOTAL) {
-        let msg = `Anotaste ${goals} de ${TOTAL} penales.`;
-        if (goals === TOTAL) msg += ' ⭐ ¡Tanda perfecta!';
-        else if (goals === 0) msg += ' 😬 Una tanda para el olvido.';
-        scoreEl.textContent = msg;
-        resultEl.textContent = '';
-        restartBtn.style.display = '';
-      } else {
-        scoreEl.textContent = `Penal ${round + 1} de ${TOTAL} · Goles: ${goals}`;
-        resultEl.textContent = '';
-        zones.forEach((b) => { b.disabled = false; });
-      }
-    }, 900);
+    animateShot(shot, keeperZoneIdx, isGoal, () => {
+      if (isGoal) { goals++; resultEl.textContent = '⚽ ¡GOOOL!'; }
+      else { resultEl.textContent = '🧤 ¡Atajada del arquero!'; }
+      setTimeout(() => {
+        if (round >= TOTAL) {
+          let msg = `Anotaste ${goals} de ${TOTAL} penales.`;
+          if (goals === TOTAL) msg += ' ⭐ ¡Tanda perfecta!';
+          else if (goals === 0) msg += ' 😬 Una tanda para el olvido.';
+          scoreEl.textContent = msg;
+          resultEl.textContent = '';
+          restartBtn.style.display = '';
+        } else {
+          scoreEl.textContent = `Penal ${round + 1} de ${TOTAL} · Goles: ${goals}`;
+          resultEl.textContent = '';
+          zones.forEach((b) => { b.disabled = false; });
+          keeperX = zoneX[1];
+          renderStatic();
+        }
+      }, 900);
+    });
   }));
 
   restartBtn.addEventListener('click', () => renderPenaltyGame(stage));
 }
+
 
 function renderMemoryGame(stage) {
   const icons = ['⚽', '🏆', '🥅', '🧤', '👟', '🐐', '🎽', '⭐'];
@@ -808,13 +923,19 @@ function renderMemoryGame(stage) {
   const scoreEl = document.getElementById('memScore');
   const restartBtn = document.getElementById('memRestart');
 
-  grid.innerHTML = deck.map((c, i) => `<div class="mem-card" data-idx="${i}" data-icon="${c.icon}"></div>`).join('');
+  grid.innerHTML = deck.map((c, i) => `
+    <div class="mem-card" data-idx="${i}" data-icon="${c.icon}">
+      <div class="mem-card-inner">
+        <div class="mem-card-front"></div>
+        <div class="mem-card-back">${c.icon}</div>
+      </div>
+    </div>
+  `).join('');
   const cards = grid.querySelectorAll('.mem-card');
 
   cards.forEach((card) => card.addEventListener('click', () => {
     if (lock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
     card.classList.add('flipped');
-    card.textContent = card.dataset.icon;
     flipped.push(card);
     if (flipped.length === 2) {
       moves++;
@@ -822,21 +943,21 @@ function renderMemoryGame(stage) {
       lock = true;
       const [a, b] = flipped;
       if (a.dataset.icon === b.dataset.icon) {
-        a.classList.add('matched'); b.classList.add('matched');
-        matched += 2;
-        flipped = []; lock = false;
-        if (matched === cards.length) {
-          setTimeout(() => {
+        setTimeout(() => {
+          a.classList.add('matched'); b.classList.add('matched');
+          matched += 2;
+          flipped = []; lock = false;
+          if (matched === cards.length) {
             scoreEl.textContent = `¡Ganaste en ${moves} movimientos! 🎉`;
             restartBtn.style.display = '';
-          }, 300);
-        }
+          }
+        }, 350);
       } else {
         setTimeout(() => {
-          a.classList.remove('flipped'); a.textContent = '';
-          b.classList.remove('flipped'); b.textContent = '';
+          a.classList.remove('flipped');
+          b.classList.remove('flipped');
           flipped = []; lock = false;
-        }, 700);
+        }, 800);
       }
     }
   }));
@@ -844,44 +965,101 @@ function renderMemoryGame(stage) {
   restartBtn.addEventListener('click', () => renderMemoryGame(stage));
 }
 
+
 function renderReflexGame(stage) {
   let state = 'idle';
-  let timeoutId = null;
-  let startTime = 0;
+  let delayTimeout = null;
+  let rafId = null;
+  let spawnTime = 0;
+  const travelDuration = 850;
+  let ballX = 0;
   let best = Number(localStorage.getItem('reflexBest') || 0) || null;
 
   stage.innerHTML = `
     <div class="game-box">
-      <div class="game-msg">Hacé clic en el círculo apenas aparezca la pelota. ¡No te adelantes!</div>
+      <div class="game-msg">Hacé clic para atajar el remate apenas la pelota entre al arco. ¡No te adelantes!</div>
       <div class="game-score" id="rxScore">${best ? 'Mejor tiempo: ' + best + ' ms' : 'Todavía sin marca'}</div>
-      <div class="rx-box" id="rxBox">Hacé clic para empezar</div>
+      <canvas class="rx-canvas" id="rxCanvas" width="260" height="170"></canvas>
+      <div class="rx-msg" id="rxMsg">Hacé clic para empezar</div>
     </div>
   `;
-  const box = document.getElementById('rxBox');
+  const canvas = document.getElementById('rxCanvas');
+  const ctx = canvas.getContext('2d');
   const scoreEl = document.getElementById('rxScore');
+  const msgEl = document.getElementById('rxMsg');
+  const W = canvas.width, H = canvas.height;
+  const goalX = 20, goalY = 15, goalW = W - 40, goalH = 70;
 
-  box.addEventListener('click', () => {
+  function drawScene(ballVisible, bx, by, br) {
+    ctx.fillStyle = '#0f2e1c';
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(goalX, goalY, goalW, goalH);
+    ctx.strokeStyle = 'rgba(255,255,255,.2)';
+    ctx.lineWidth = 1;
+    for (let i = 1; i < 6; i++) {
+      const x = goalX + (goalW / 6) * i;
+      ctx.beginPath(); ctx.moveTo(x, goalY); ctx.lineTo(x, goalY + goalH); ctx.stroke();
+    }
+    ctx.font = '26px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🧤', W / 2, H - 8);
+    if (ballVisible) {
+      ctx.beginPath();
+      ctx.fillStyle = '#fff';
+      ctx.arc(bx, by, br, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  }
+  drawScene(false);
+
+  function startWait() {
+    state = 'waiting';
+    msgEl.textContent = 'Esperá...';
+    const delay = 900 + Math.random() * 2200;
+    delayTimeout = setTimeout(() => {
+      state = 'active';
+      spawnTime = performance.now();
+      ballX = goalX + 20 + Math.random() * (goalW - 40);
+      msgEl.textContent = '¡AHORA! Hacé clic';
+      animateBall();
+    }, delay);
+  }
+
+  function animateBall() {
+    function frame(now) {
+      if (state !== 'active') return;
+      const t = Math.min(1, (now - spawnTime) / travelDuration);
+      const by = goalY + 20 + t * (H - 30 - (goalY + 20));
+      const br = 6 + t * 10;
+      drawScene(true, ballX, by, br);
+      if (t < 1) {
+        rafId = requestAnimationFrame(frame);
+      } else {
+        state = 'done';
+        msgEl.textContent = '⚽ ¡Gol! No llegaste a tiempo. Hacé clic para intentar de nuevo';
+      }
+    }
+    rafId = requestAnimationFrame(frame);
+  }
+
+  canvas.addEventListener('click', () => {
     if (state === 'idle' || state === 'done') {
-      state = 'waiting';
-      box.classList.remove('ready');
-      box.textContent = 'Esperá...';
-      const delay = 1000 + Math.random() * 2500;
-      timeoutId = setTimeout(() => {
-        state = 'ready';
-        startTime = performance.now();
-        box.classList.add('ready');
-        box.innerHTML = '<span class="ball">⚽</span>';
-      }, delay);
+      drawScene(false);
+      startWait();
     } else if (state === 'waiting') {
-      clearTimeout(timeoutId);
+      clearTimeout(delayTimeout);
       state = 'done';
-      box.classList.remove('ready');
-      box.textContent = '¡Te adelantaste! Hacé clic para probar de nuevo';
-    } else if (state === 'ready') {
-      const reaction = Math.round(performance.now() - startTime);
+      msgEl.textContent = '¡Te adelantaste! Hacé clic para probar de nuevo';
+    } else if (state === 'active') {
+      const reaction = Math.round(performance.now() - spawnTime);
       state = 'done';
-      box.classList.remove('ready');
-      box.textContent = `¡${reaction} ms! Hacé clic para probar de nuevo`;
+      if (rafId) cancelAnimationFrame(rafId);
+      msgEl.textContent = `🧤 ¡Atajada en ${reaction} ms! Hacé clic para jugar de nuevo`;
       if (!best || reaction < best) {
         best = reaction;
         localStorage.setItem('reflexBest', String(best));
@@ -891,6 +1069,7 @@ function renderReflexGame(stage) {
   });
 }
 
+
 function renderTicTacToe(stage) {
   const board = Array(9).fill(null);
   let over = false;
@@ -898,21 +1077,31 @@ function renderTicTacToe(stage) {
     <div class="game-box">
       <div class="game-msg">Vos sos Messi (10), la máquina es Cristiano (7).</div>
       <div class="game-score" id="tttScore">Tu turno</div>
-      <div class="ttt-grid" id="tttGrid"></div>
+      <div class="ttt-wrap">
+        <div class="ttt-grid" id="tttGrid"></div>
+        <div class="ttt-win-line" id="tttWinLine"></div>
+      </div>
       <button class="game-btn primary" id="tttRestart" type="button" style="display:none">Jugar de nuevo</button>
     </div>
   `;
   const grid = document.getElementById('tttGrid');
   const scoreEl = document.getElementById('tttScore');
   const restartBtn = document.getElementById('tttRestart');
+  const winLineEl = document.getElementById('tttWinLine');
   grid.innerHTML = board.map((_, i) => `<div class="ttt-cell" data-idx="${i}"></div>`).join('');
   const cells = grid.querySelectorAll('.ttt-cell');
 
   const LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
-  function winner(b) {
-    for (const [a, c, d] of LINES) {
-      if (b[a] && b[a] === b[c] && b[a] === b[d]) return b[a];
+  function winningLine(b) {
+    for (const line of LINES) {
+      const [a, c, d] = line;
+      if (b[a] && b[a] === b[c] && b[a] === b[d]) return line;
     }
+    return null;
+  }
+  function winner(b) {
+    const line = winningLine(b);
+    if (line) return b[line[0]];
     return b.every(Boolean) ? 'empate' : null;
   }
   function cpuMove() {
@@ -926,13 +1115,33 @@ function renderTicTacToe(stage) {
   }
   function paint() {
     cells.forEach((cell, i) => {
-      cell.textContent = board[i] === 'M' ? '10' : (board[i] === 'C' ? '7' : '');
-      cell.className = 'ttt-cell' + (board[i] === 'M' ? ' m' : board[i] === 'C' ? ' c' : '');
+      let mark = '';
+      if (board[i] === 'M') mark = '<span class="ttt-mark m">10</span>';
+      else if (board[i] === 'C') mark = '<span class="ttt-mark c">7</span>';
+      cell.innerHTML = mark;
     });
   }
-  function endGame(w) {
+  function positionWinLine(line) {
+    const a = cells[line[0]].getBoundingClientRect();
+    const c = cells[line[2]].getBoundingClientRect();
+    const wrap = grid.getBoundingClientRect();
+    const x1 = a.left + a.width / 2 - wrap.left;
+    const y1 = a.top + a.height / 2 - wrap.top;
+    const x2 = c.left + c.width / 2 - wrap.left;
+    const y2 = c.top + c.height / 2 - wrap.top;
+    const dx = x2 - x1, dy = y2 - y1;
+    const len = Math.sqrt(dx * dx + dy * dy) + 20;
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    winLineEl.style.width = len + 'px';
+    winLineEl.style.left = (x1 - 10) + 'px';
+    winLineEl.style.top = y1 + 'px';
+    winLineEl.style.transform = `rotate(${angle}deg)`;
+    winLineEl.classList.add('show');
+  }
+  function endGame(w, line) {
     over = true;
     scoreEl.textContent = w === 'M' ? '🎉 ¡Ganaste! GOAT confirmado.' : (w === 'C' ? '😅 Ganó la máquina (Cristiano).' : '🤝 Empate.');
+    if (line) positionWinLine(line);
     restartBtn.style.display = '';
   }
   cells.forEach((cell) => cell.addEventListener('click', () => {
@@ -940,18 +1149,21 @@ function renderTicTacToe(stage) {
     if (over || board[i]) return;
     board[i] = 'M';
     paint();
-    let w = winner(board);
-    if (w) { endGame(w); return; }
+    let line = winningLine(board);
+    if (line) { endGame('M', line); return; }
+    if (board.every(Boolean)) { endGame('empate', null); return; }
     const cpuI = cpuMove();
     if (cpuI !== undefined) board[cpuI] = 'C';
     paint();
-    w = winner(board);
-    if (w) { endGame(w); return; }
+    line = winningLine(board);
+    if (line) { endGame('C', line); return; }
+    if (board.every(Boolean)) { endGame('empate', null); return; }
     scoreEl.textContent = 'Tu turno';
   }));
 
   restartBtn.addEventListener('click', () => renderTicTacToe(stage));
 }
+
 
 
 function renderStats() {
