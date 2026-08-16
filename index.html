@@ -147,7 +147,7 @@
   .chat-messages{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-height:0}
   .chat-msg{display:flex;gap:7px;align-items:flex-start}
   .chat-msg img{width:22px;height:22px;border-radius:50%;flex:none;margin-top:1px}
-  .chat-msg .chat-avatar-placeholder{width:22px;height:22px;border-radius:50%;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:.65rem;flex:none;margin-top:1px}
+  .chat-msg .chat-avatar-placeholder{width:22px;height:22px;border-radius:50%;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#fff;flex:none;margin-top:1px}
   .avatar-wrap{position:relative;display:inline-flex;flex:none}
   .chat-msg .avatar-wrap{margin-top:1px}
   .presence-dot{position:absolute;bottom:-1px;right:-1px;width:8px;height:8px;border-radius:50%;background:#4ade80;border:2px solid var(--panel);box-shadow:0 0 4px #4ade80}
@@ -284,7 +284,7 @@
   .ranking-row:last-child{border-bottom:none}
   .ranking-pos{width:18px;text-align:center;font-weight:800;font-size:.76rem;color:var(--muted)}
   .ranking-photo{width:20px;height:20px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.15)}
-  .ranking-photo-placeholder{display:flex;align-items:center;justify-content:center;background:var(--panel2);font-size:.7rem}
+  .ranking-photo-placeholder{display:flex;align-items:center;justify-content:center;background:var(--panel2);font-size:.7rem;font-weight:700;color:#fff}
   .ranking-name{flex:1;font-weight:700;font-size:.75rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .ranking-score{font-weight:800;font-size:.75rem;color:var(--cr7-accent)}
   .ranking-empty{color:var(--muted);font-size:.75rem;text-align:center;padding:6px 0}
@@ -1200,6 +1200,22 @@ function initApp() {
     });
   }
 
+  // --- Avatar tipo Gmail (círculo de color + inicial) para usuarios sin foto ---
+  const AVATAR_COLORS = ['#e57373', '#f06292', '#ba68c8', '#9575cd', '#7986cb', '#64b5f6', '#4fc3f7', '#4dd0e1', '#4db6ac', '#81c784', '#aed581', '#dce775', '#ffd54f', '#ffb74d', '#ff8a65', '#a1887f'];
+  function avatarColorFor(name) {
+    const str = name || '?';
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+    return AVATAR_COLORS[hash % AVATAR_COLORS.length];
+  }
+  function avatarInitial(name) {
+    const n = (name || '?').trim();
+    return n ? n.charAt(0).toUpperCase() : '?';
+  }
+  function avatarFallback(name, cls) {
+    return `<span class="${cls}" style="background:${avatarColorFor(name)}">${avatarInitial(name)}</span>`;
+  }
+
   // --- Ranking de fans: público, visible sin necesidad de loguearse ---
   const medals = ['🥇', '🥈', '🥉'];
   function scaledFanScore(e) {
@@ -1222,7 +1238,7 @@ function initApp() {
       <div class="ranking-row">
         <span class="ranking-pos">${medals[i] || (i + 1)}</span>
         <span class="avatar-wrap">
-          ${e.photo ? `<img class="ranking-photo" src="${e.photo}" alt="">` : '<span class="ranking-photo ranking-photo-placeholder">🙂</span>'}
+          ${e.photo ? `<img class="ranking-photo" src="${e.photo}" alt="">` : avatarFallback(e.name, 'ranking-photo ranking-photo-placeholder')}
           ${presenceMap[e.uid] ? '<span class="presence-dot"></span>' : ''}
         </span>
         <span class="ranking-name">${e.name || 'Fan anónimo'}</span>
@@ -1296,7 +1312,7 @@ function initApp() {
     return entries.map((e) => `
       <div class="chat-msg">
         <span class="avatar-wrap">
-          ${e.photo ? `<img src="${e.photo}" alt="">` : '<span class="chat-avatar-placeholder">🙂</span>'}
+          ${e.photo ? `<img src="${e.photo}" alt="">` : avatarFallback(e.name, 'chat-avatar-placeholder')}
           ${presenceMap[e.uid] ? '<span class="presence-dot"></span>' : ''}
         </span>
         <div class="chat-msg-body">
