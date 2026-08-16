@@ -706,16 +706,98 @@ function initGames() {
   const closeBtn = document.getElementById('gameModalClose');
   const renderers = { penales: renderPenaltyProGame, gambeta: renderGambetaGame };
   const titles = { penales: '🥅 Penales Pro', gambeta: '🏃 Gambeta Callejera' };
+  const MAX_PLAYS = 3;
+  let activeGame = null;
+  let authUnsub = null;
+
+  function renderGameGate(name) {
+    stage.innerHTML = `
+      <div class="game-box">
+        <p class="trivia-msg">Inicia sesión con Google para jugar ${titles[name]} y sumar puntos al ranking de fans.</p>
+        <button class="signin-btn" id="gameSignInBtn" type="button">Iniciar sesión con Google</button>
+      </div>
+    `;
+    const btn = document.getElementById('gameSignInBtn');
+    const bridge = window.__gameBridge;
+    btn.addEventListener('click', () => {
+      if (!bridge || bridge.unavailable) return;
+      btn.disabled = true;
+      btn.textContent = 'Abriendo inicio de sesión...';
+      bridge.signIn().catch(() => {
+        btn.disabled = false;
+        btn.textContent = 'Iniciar sesión con Google';
+      });
+    });
+  }
+
+  function renderGameLocked(name) {
+    stage.innerHTML = `
+      <div class="game-box">
+        <p class="trivia-msg">Ya jugaste tus ${MAX_PLAYS} partidas de hoy en ${titles[name]}.</p>
+        <p class="trivia-saving">Volvé mañana para jugar de nuevo y seguir sumando puntos al ranking.</p>
+      </div>
+    `;
+  }
+
+  function renderGameError() {
+    stage.innerHTML = `<div class="game-box"><p class="trivia-msg">El juego no está disponible ahora mismo. Intenta de nuevo más tarde.</p></div>`;
+  }
+
+  function startPlay(name) {
+    const bridge = window.__gameBridge;
+    if (!bridge || bridge.unavailable) { renderGameError(); return; }
+    stage.innerHTML = '<div class="game-box"><p class="trivia-msg">Cargando...</p></div>';
+    bridge.consumePlay(name, MAX_PLAYS).then((res) => {
+      if (activeGame !== name) return;
+      if (!res.allowed) { renderGameLocked(name); return; }
+      stage.innerHTML = '';
+      renderers[name](stage, {
+        remaining: res.remaining,
+        maxPlays: MAX_PLAYS,
+        onRestart: () => startPlay(name),
+        onFinish: (points, maxPossible) => { bridge.addPoints(points, maxPossible); }
+      });
+    }).catch(() => renderGameError());
+  }
 
   function openGame(name) {
+    if (authUnsub) { authUnsub(); authUnsub = null; }
+    activeGame = name;
     titleEl.textContent = titles[name];
-    stage.innerHTML = '';
-    renderers[name](stage);
     overlay.classList.add('open');
+    let lastLoggedIn = null;
+    function decide() {
+      const bridge = window.__gameBridge;
+      if (!bridge) {
+        stage.innerHTML = '<div class="game-box"><p class="trivia-msg">Cargando...</p></div>';
+        setTimeout(() => { if (activeGame === name) decide(); }, 400);
+        return;
+      }
+      if (bridge.unavailable) { renderGameError(); return; }
+      if (!authUnsub) {
+        authUnsub = bridge.onAuthChange((user) => {
+          if (!overlay.classList.contains('open') || activeGame !== name) return;
+          const loggedIn = !!user;
+          if (loggedIn === lastLoggedIn) return;
+          lastLoggedIn = loggedIn;
+          if (loggedIn) startPlay(name); else renderGameGate(name);
+        });
+      }
+      if (!bridge.authResolved) {
+        stage.innerHTML = '<div class="game-box"><p class="trivia-msg">Cargando...</p></div>';
+        return;
+      }
+      const user = bridge.getUser();
+      lastLoggedIn = !!user;
+      if (user) startPlay(name); else renderGameGate(name);
+    }
+    decide();
   }
   function closeGame() {
     overlay.classList.remove('open');
     stage.innerHTML = '';
+    activeGame = null;
+    if (authUnsub) { authUnsub(); authUnsub = null; }
   }
   cards.forEach((card) => card.addEventListener('click', () => openGame(card.dataset.game)));
   closeBtn.addEventListener('click', closeGame);
@@ -723,6 +805,7 @@ function initGames() {
     if (e.target === overlay) closeGame();
   });
 }
+
 
 function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 function easeOutQuad(t) { return 1 - (1 - t) * (1 - t); }
@@ -994,13 +1077,15 @@ function drawHumanoid(ctx, cx, cy, scale, o) {
   ctx.restore();
 }
 
-function renderPenaltyProGame(stage) {
+function renderPenaltyProGame(stage, opts) {
+  opts = opts || {};
   const TOTAL = 5;
   let round = 0, goals = 0, streak = 0;
   let bestStreak = Number(localStorage.getItem('penProBestStreak') || 0);
   stage.innerHTML = `
     <div class="game-box">
       <div class="game-msg">Arrastrá desde la pelota hacia el arco: la distancia define la potencia (y qué tan cerca del travesaño cae) y el ángulo la dirección. Soltá para patear.</div>
+      ${typeof opts.remaining === 'number' ? `<p class="trivia-saving">Partidas restantes hoy: ${opts.remaining}/${opts.maxPlays || 3}</p>` : ''}
       <div class="game-score" id="pen2Score"></div>
       <canvas class="pen2-canvas" id="pen2Canvas" width="380" height="260"></canvas>
       <div class="game-result2" id="pen2Result"></div>
@@ -1241,12 +1326,15 @@ function renderPenaltyProGame(stage) {
   }
 
   function endGame() {
+    const points = goals * 10;
     let msg = `Anotaste ${goals} de ${TOTAL} penales. Mejor racha: ${bestStreak}.`;
     if (goals === TOTAL) msg += ' ⭐ ¡Tanda perfecta!';
     else if (goals === 0) msg += ' 😬 Una tanda para el olvido.';
+    if (points > 0) msg += ` +${points} puntos al ranking.`;
     resultEl.textContent = msg;
     restartBtn.style.display = '';
     updateHud();
+    if (opts.onFinish) opts.onFinish(points, TOTAL * 10);
   }
 
   function animateShot(target, res, onDone) {
@@ -1338,13 +1426,17 @@ function renderPenaltyProGame(stage) {
   }
   requestAnimationFrame(loop);
 
-  restartBtn.addEventListener('click', () => renderPenaltyProGame(stage));
+  restartBtn.addEventListener('click', () => {
+    if (opts.onRestart) opts.onRestart(); else renderPenaltyProGame(stage, opts);
+  });
 }
 
-function renderGambetaGame(stage) {
+function renderGambetaGame(stage, opts) {
+  opts = opts || {};
   stage.innerHTML = `
     <div class="game-box">
       <div class="game-msg">Elegí tu jugador. Espacio / tocá el campo para saltar. Flecha abajo (mantené presionada) para agacharte. Esquivá a los defensores y sumá pelotas.</div>
+      ${typeof opts.remaining === 'number' ? `<p class="trivia-saving">Partidas restantes hoy: ${opts.remaining}/${opts.maxPlays || 3}</p>` : ''}
       <div class="gmb-charsel" id="gmbCharSel">
         <button class="gmb-char-btn active" data-char="messi" type="button">10 Messi</button>
         <button class="gmb-char-btn" data-char="cr7" type="button">7 Cristiano</button>
@@ -1438,9 +1530,11 @@ function renderGambetaGame(stage) {
     const finalScore = currentScore();
     const isRecord = finalScore > best;
     if (isRecord) { best = finalScore; localStorage.setItem('gambetaBest', String(best)); }
-    resultEl.textContent = `💥 ¡Te chocaste con un defensor! Puntaje: ${finalScore}${isRecord && finalScore > 0 ? ' · ¡Nuevo récord!' : ''}`;
+    const points = Math.min(Math.floor(finalScore / 2), 50);
+    resultEl.textContent = `💥 ¡Te chocaste con un defensor! Puntaje: ${finalScore}${isRecord && finalScore > 0 ? ' · ¡Nuevo récord!' : ''}${points > 0 ? ` · +${points} puntos al ranking.` : ''}`;
     restartBtn.style.display = '';
     updateScoreText();
+    if (opts.onFinish) opts.onFinish(points, 50);
   }
 
   function update(dt) {
@@ -1630,10 +1724,9 @@ function renderGambetaGame(stage) {
   restartBtn.addEventListener('click', () => {
     document.removeEventListener('keydown', onKeyDown);
     document.removeEventListener('keyup', onKeyUp);
-    renderGambetaGame(stage);
+    if (opts.onRestart) opts.onRestart(); else renderGambetaGame(stage, opts);
   });
 }
-
 
 function renderStats() {
   const grid = document.getElementById('statsGrid');
@@ -1773,12 +1866,60 @@ function initApp() {
     triviaGateEl.textContent = 'La trivia no está disponible ahora mismo.';
     rankingListEl.textContent = 'El ranking no está disponible ahora mismo.';
     chatMessagesEl.innerHTML = '<p class="chat-empty">El chat no está disponible ahora mismo.</p>';
+    window.__gameBridge = { unavailable: true };
     return;
   }
 
   const db = firebase.database();
   const auth = firebase.auth();
   const provider = new firebase.auth.GoogleAuthProvider();
+
+  // --- Puente para que los minijuegos usen la sesión y la base de datos ---
+  window.__gameBridge = {
+    getUser: () => currentUser,
+    authResolved: false,
+    authListeners: [],
+    onAuthChange(cb) {
+      this.authListeners.push(cb);
+      return () => {
+        const i = this.authListeners.indexOf(cb);
+        if (i > -1) this.authListeners.splice(i, 1);
+      };
+    },
+    signIn: () => auth.signInWithPopup(provider),
+    consumePlay(gameKey, maxPlays) {
+      const user = currentUser;
+      if (!user) return Promise.resolve({ allowed: false, remaining: 0 });
+      const today = todayStr();
+      return db.ref('gamePlays/' + user.uid + '/' + gameKey).transaction((current) => {
+        if (!current || current.date !== today) return { date: today, count: 1 };
+        if (current.count >= maxPlays) return;
+        return { date: today, count: current.count + 1 };
+      }).then((result) => {
+        if (!result.committed) return { allowed: false, remaining: 0 };
+        const val = result.snapshot.val() || { count: maxPlays };
+        return { allowed: true, remaining: Math.max(0, maxPlays - val.count) };
+      }).catch(() => ({ allowed: false, remaining: 0 }));
+    },
+    addPoints(points, maxPossible) {
+      const user = currentUser;
+      if (!user || !points) return Promise.resolve();
+      const name = displayNameFor(user);
+      const photo = user.photoURL || '';
+      return db.ref('fanScores/' + user.uid).transaction((current) => {
+        const c = current || {};
+        return {
+          name, photo,
+          score: typeof c.score === 'number' ? c.score : 0,
+          total: typeof c.total === 'number' ? c.total : 0,
+          gameScore: (typeof c.gameScore === 'number' ? c.gameScore : 0) + points,
+          gameMax: (typeof c.gameMax === 'number' ? c.gameMax : 0) + (maxPossible || points),
+          updatedAt: firebase.database.ServerValue.TIMESTAMP
+        };
+      }).catch((err) => console.error('Error guardando puntos del juego', err));
+    }
+  };
+
   const messiRef = db.ref('votes/messi');
   const cristianoRef = db.ref('votes/cristiano');
 
@@ -2186,10 +2327,15 @@ function initApp() {
     // Puntajes viejos se guardaban como "respuestas correctas" (máx. 8).
     // Los nuevos se guardan en puntos (10 por respuesta correcta). Normalizamos
     // los viejos a la misma escala de puntos para que el ranking sea consistente.
+    let triviaScore, triviaTotal;
     if (e.total && e.total <= 20) {
-      return { score: e.score * 10, total: e.total * 10 };
+      triviaScore = e.score * 10; triviaTotal = e.total * 10;
+    } else {
+      triviaScore = e.score || 0; triviaTotal = e.total || 0;
     }
-    return { score: e.score, total: e.total };
+    // Los puntos de los minijuegos (Penales Pro, Gambeta Callejera) se suman aparte.
+    const gameScore = e.gameScore || 0;
+    return { score: triviaScore + gameScore, total: triviaTotal };
   }
 
   function renderRankingRows(entries) {
@@ -2470,6 +2616,13 @@ function initApp() {
     renderAuthUI();
     renderTriviaGate();
     renderChatGate();
+
+    if (window.__gameBridge && !window.__gameBridge.unavailable) {
+      window.__gameBridge.authResolved = true;
+      window.__gameBridge.authListeners.slice().forEach((cb) => {
+        try { cb(user); } catch (err) { console.error(err); }
+      });
+    }
 
     if (!user) {
       hasVoted = false;
