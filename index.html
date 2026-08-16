@@ -231,11 +231,14 @@
 
   /* YouTube live subscribers */
   .games-section{background:var(--panel);border-radius:16px;padding:18px;border:1px solid rgba(255,255,255,.06)}
-  .games-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-  .game-tab{background:var(--panel2);color:var(--muted);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px 14px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s}
-  .game-tab:hover{color:var(--text)}
-  .game-tab.active{background:linear-gradient(120deg,var(--messi-bg1),var(--cr7-bg1));color:#fff;border-color:transparent}
-  .game-stage{min-height:240px}
+  .games-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media (max-width:720px){.games-grid{grid-template-columns:repeat(2,1fr)}}
+  .game-card{background:var(--panel2);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:18px 12px;text-align:center;cursor:pointer;font-family:inherit;color:var(--text);transition:.2s;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .game-card:hover{transform:translateY(-3px);border-color:var(--messi-accent)}
+  .game-card-icon{font-size:1.8rem}
+  .game-card-name{font-weight:800;font-size:.85rem}
+  .game-card-desc{font-size:.7rem;color:var(--muted)}
+  .game-stage{min-height:240px;padding:6px 18px 20px}
   .game-box{text-align:center}
   .game-msg{font-size:.8rem;color:var(--muted);margin:0 0 12px;max-width:420px;margin-left:auto;margin-right:auto}
   .game-score{font-weight:800;font-size:.88rem;margin-bottom:14px}
@@ -487,13 +490,28 @@
         <span class="sub">elegí uno y jugá</span>
       </div>
       <div class="games-section reveal">
-        <div class="games-tabs" id="gamesTabs">
-          <button class="game-tab active" data-game="penales" type="button">⚽ Penales</button>
-          <button class="game-tab" data-game="memoria" type="button">🧠 Memoria</button>
-          <button class="game-tab" data-game="reflejos" type="button">🧤 Reflejos</button>
-          <button class="game-tab" data-game="tateti" type="button">❌⭕ Ta-Te-Ti</button>
+        <div class="games-grid" id="gamesGrid">
+          <button class="game-card" data-game="penales" type="button">
+            <span class="game-card-icon">⚽</span>
+            <span class="game-card-name">Penales</span>
+            <span class="game-card-desc">Pateá y tratá de vencer al arquero</span>
+          </button>
+          <button class="game-card" data-game="memoria" type="button">
+            <span class="game-card-icon">🧠</span>
+            <span class="game-card-name">Memoria</span>
+            <span class="game-card-desc">Encontrá las parejas de cartas</span>
+          </button>
+          <button class="game-card" data-game="reflejos" type="button">
+            <span class="game-card-icon">🧤</span>
+            <span class="game-card-name">Reflejos</span>
+            <span class="game-card-desc">Medí tu tiempo de reacción</span>
+          </button>
+          <button class="game-card" data-game="tateti" type="button">
+            <span class="game-card-icon">❌⭕</span>
+            <span class="game-card-name">Ta-Te-Ti</span>
+            <span class="game-card-desc">Messi (10) vs la máquina (7)</span>
+          </button>
         </div>
-        <div class="game-stage" id="gameStage"></div>
       </div>
 
       <div class="section-title">
@@ -544,6 +562,16 @@
         <button id="rankingFilterApplyBtn" class="signin-btn ranking-filter-apply" type="button">Aplicar</button>
       </div>
       <div id="rankingModalList" class="ranking-modal-list">Cargando...</div>
+    </div>
+  </div>
+
+  <div class="ranking-modal-overlay" id="gameModalOverlay">
+    <div class="ranking-modal" style="max-width:460px">
+      <div class="ranking-modal-head">
+        <span id="gameModalTitle">🎮 Juego</span>
+        <button class="ranking-modal-close" id="gameModalClose" type="button">✕</button>
+      </div>
+      <div class="game-stage" id="gameStage"></div>
     </div>
   </div>
 
@@ -682,16 +710,29 @@ function renderGoals() {
 
 // --- Minijuegos ---
 function initGames() {
+  const cards = document.querySelectorAll('.game-card');
   const stage = document.getElementById('gameStage');
-  const tabs = document.querySelectorAll('.game-tab');
+  const overlay = document.getElementById('gameModalOverlay');
+  const titleEl = document.getElementById('gameModalTitle');
+  const closeBtn = document.getElementById('gameModalClose');
   const renderers = { penales: renderPenaltyGame, memoria: renderMemoryGame, reflejos: renderReflexGame, tateti: renderTicTacToe };
-  function showGame(name) {
-    tabs.forEach((t) => t.classList.toggle('active', t.dataset.game === name));
+  const titles = { penales: '⚽ Penales', memoria: '🧠 Memoria', reflejos: '🧤 Reflejos', tateti: '❌⭕ Ta-Te-Ti' };
+
+  function openGame(name) {
+    titleEl.textContent = titles[name];
     stage.innerHTML = '';
     renderers[name](stage);
+    overlay.classList.add('open');
   }
-  tabs.forEach((t) => t.addEventListener('click', () => showGame(t.dataset.game)));
-  showGame('penales');
+  function closeGame() {
+    overlay.classList.remove('open');
+    stage.innerHTML = '';
+  }
+  cards.forEach((card) => card.addEventListener('click', () => openGame(card.dataset.game)));
+  closeBtn.addEventListener('click', closeGame);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeGame();
+  });
 }
 
 function renderPenaltyGame(stage) {
