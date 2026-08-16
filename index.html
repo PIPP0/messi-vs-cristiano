@@ -230,15 +230,34 @@
   }
 
   /* YouTube live subscribers */
-  .yt-section{background:var(--panel);border-radius:16px;padding:18px 18px;border:1px solid rgba(255,255,255,.06)}
-  .yt-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
-  @media (max-width:720px){.yt-cards{grid-template-columns:1fr}}
-  .yt-card{background:var(--panel2);border-radius:14px;padding:16px;text-align:center;position:relative}
-  .yt-card .yt-name{font-weight:700;font-size:.85rem;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:8px}
-  .yt-card .yt-count{font-size:clamp(1.5rem,4vw,2rem);font-weight:900;letter-spacing:-1px}
-  .yt-card.messi .yt-count{color:var(--messi-bg1)}
-  .yt-card.cr7 .yt-count{color:var(--cr7-accent)}
-  .yt-card .yt-approx{font-size:.68rem;color:var(--muted);margin-top:5px}
+  .games-section{background:var(--panel);border-radius:16px;padding:18px;border:1px solid rgba(255,255,255,.06)}
+  .games-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .game-tab{background:var(--panel2);color:var(--muted);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px 14px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s}
+  .game-tab:hover{color:var(--text)}
+  .game-tab.active{background:linear-gradient(120deg,var(--messi-bg1),var(--cr7-bg1));color:#fff;border-color:transparent}
+  .game-stage{min-height:240px}
+  .game-box{text-align:center}
+  .game-msg{font-size:.8rem;color:var(--muted);margin:0 0 12px;max-width:420px;margin-left:auto;margin-right:auto}
+  .game-score{font-weight:800;font-size:.88rem;margin-bottom:14px}
+  .game-btn{background:var(--panel2);color:var(--text);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 16px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;margin-top:12px}
+  .game-btn:hover{background:rgba(255,255,255,.08)}
+  .game-btn.primary{background:linear-gradient(120deg,var(--messi-bg1),var(--cr7-bg1));border:none;color:#fff}
+  .pen-goal{max-width:320px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .pen-zone{background:var(--panel2);border:2px solid rgba(255,255,255,.1);border-radius:10px;padding:20px 0;font-size:1.5rem;cursor:pointer;transition:.15s;font-family:inherit}
+  .pen-zone:hover{border-color:var(--messi-accent)}
+  .pen-zone:disabled{opacity:.5;cursor:default}
+  .pen-result{font-size:.95rem;font-weight:800;min-height:1.4em;margin:10px 0 0}
+  .mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:320px;margin:0 auto}
+  .mem-card{aspect-ratio:1;background:var(--panel2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;cursor:pointer;border:1px solid rgba(255,255,255,.1);transition:.2s}
+  .mem-card.flipped,.mem-card.matched{background:linear-gradient(120deg,var(--messi-bg1),var(--cr7-bg1))}
+  .mem-card.matched{opacity:.5;cursor:default}
+  .rx-box{max-width:280px;height:170px;margin:0 auto;background:var(--panel2);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:.82rem;color:var(--muted);cursor:pointer;border:2px dashed rgba(255,255,255,.15);text-align:center;padding:0 16px}
+  .rx-box.ready{border-color:var(--cr7-accent);border-style:solid;color:var(--text)}
+  .rx-box .ball{font-size:2.4rem}
+  .ttt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:210px;margin:0 auto}
+  .ttt-cell{aspect-ratio:1;background:var(--panel2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:900;cursor:pointer;border:1px solid rgba(255,255,255,.1)}
+  .ttt-cell.m{color:var(--messi-bg1)}
+  .ttt-cell.c{color:var(--cr7-accent)}
 
   /* Interesting stats grid */
   .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:12px}
@@ -464,22 +483,17 @@
       </div>
 
       <div class="section-title">
-        <span class="icon">▶️</span><h2>Suscriptores en YouTube</h2>
-        <span class="sub">canales oficiales verificados</span>
+        <span class="icon">🎮</span><h2>Minijuegos</h2>
+        <span class="sub">elegí uno y jugá</span>
       </div>
-      <div class="yt-section reveal">
-        <div class="yt-cards">
-          <div class="yt-card messi">
-            <div class="yt-name">Leo Messi</div>
-            <div class="yt-count" id="ytMessiCount">0</div>
-            <div class="yt-approx" id="ytMessiNote">Aproximado, se actualiza junto con el resto del sitio</div>
-          </div>
-          <div class="yt-card cr7">
-            <div class="yt-name">UR · Cristiano</div>
-            <div class="yt-count" id="ytCr7Count">0</div>
-            <div class="yt-approx" id="ytCr7Note">Aproximado, se actualiza junto con el resto del sitio</div>
-          </div>
+      <div class="games-section reveal">
+        <div class="games-tabs" id="gamesTabs">
+          <button class="game-tab active" data-game="penales" type="button">⚽ Penales</button>
+          <button class="game-tab" data-game="memoria" type="button">🧠 Memoria</button>
+          <button class="game-tab" data-game="reflejos" type="button">🧤 Reflejos</button>
+          <button class="game-tab" data-game="tateti" type="button">❌⭕ Ta-Te-Ti</button>
         </div>
+        <div class="game-stage" id="gameStage"></div>
       </div>
 
       <div class="section-title">
@@ -666,10 +680,238 @@ function renderGoals() {
   }
 }
 
-function renderYoutubeApprox() {
-  animateCount(document.getElementById('ytMessiCount'), DATA.youtube.messiApprox, 1200);
-  animateCount(document.getElementById('ytCr7Count'), DATA.youtube.cr7Approx, 1200);
+// --- Minijuegos ---
+function initGames() {
+  const stage = document.getElementById('gameStage');
+  const tabs = document.querySelectorAll('.game-tab');
+  const renderers = { penales: renderPenaltyGame, memoria: renderMemoryGame, reflejos: renderReflexGame, tateti: renderTicTacToe };
+  function showGame(name) {
+    tabs.forEach((t) => t.classList.toggle('active', t.dataset.game === name));
+    stage.innerHTML = '';
+    renderers[name](stage);
+  }
+  tabs.forEach((t) => t.addEventListener('click', () => showGame(t.dataset.game)));
+  showGame('penales');
 }
+
+function renderPenaltyGame(stage) {
+  let round = 0, goals = 0;
+  const TOTAL = 5;
+  stage.innerHTML = `
+    <div class="game-box">
+      <div class="game-msg">Elegí a qué palo patear. El arquero también elige uno: si no coinciden, ¡es gol!</div>
+      <div class="game-score" id="penScore">Penal 1 de ${TOTAL} · Goles: 0</div>
+      <div class="pen-goal" id="penGoal">
+        <button class="pen-zone" data-zone="0" type="button">⬅️</button>
+        <button class="pen-zone" data-zone="1" type="button">⬆️</button>
+        <button class="pen-zone" data-zone="2" type="button">➡️</button>
+      </div>
+      <div class="pen-result" id="penResult"></div>
+      <button class="game-btn primary" id="penRestart" type="button" style="display:none">Jugar de nuevo</button>
+    </div>
+  `;
+  const scoreEl = document.getElementById('penScore');
+  const resultEl = document.getElementById('penResult');
+  const zones = stage.querySelectorAll('.pen-zone');
+  const restartBtn = document.getElementById('penRestart');
+
+  zones.forEach((btn) => btn.addEventListener('click', () => {
+    if (round >= TOTAL) return;
+    zones.forEach((b) => { b.disabled = true; });
+    const shot = Number(btn.dataset.zone);
+    const keeper = Math.floor(Math.random() * 3);
+    const isGoal = shot !== keeper || Math.random() < 0.15;
+    round++;
+    if (isGoal) { goals++; resultEl.textContent = '⚽ ¡GOOOL!'; }
+    else { resultEl.textContent = '🧤 ¡Atajada del arquero!'; }
+    setTimeout(() => {
+      if (round >= TOTAL) {
+        let msg = `Anotaste ${goals} de ${TOTAL} penales.`;
+        if (goals === TOTAL) msg += ' ⭐ ¡Tanda perfecta!';
+        else if (goals === 0) msg += ' 😬 Una tanda para el olvido.';
+        scoreEl.textContent = msg;
+        resultEl.textContent = '';
+        restartBtn.style.display = '';
+      } else {
+        scoreEl.textContent = `Penal ${round + 1} de ${TOTAL} · Goles: ${goals}`;
+        resultEl.textContent = '';
+        zones.forEach((b) => { b.disabled = false; });
+      }
+    }, 900);
+  }));
+
+  restartBtn.addEventListener('click', () => renderPenaltyGame(stage));
+}
+
+function renderMemoryGame(stage) {
+  const icons = ['⚽', '🏆', '🥅', '🧤', '👟', '🐐', '🎽', '⭐'];
+  const deck = icons.concat(icons).map((icon, i) => ({ icon, id: i }));
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  let flipped = [];
+  let matched = 0;
+  let moves = 0;
+  let lock = false;
+
+  stage.innerHTML = `
+    <div class="game-box">
+      <div class="game-msg">Encontrá las ${icons.length} parejas dando vuelta las cartas.</div>
+      <div class="game-score" id="memScore">Movimientos: 0</div>
+      <div class="mem-grid" id="memGrid"></div>
+      <button class="game-btn primary" id="memRestart" type="button" style="display:none">Jugar de nuevo</button>
+    </div>
+  `;
+  const grid = document.getElementById('memGrid');
+  const scoreEl = document.getElementById('memScore');
+  const restartBtn = document.getElementById('memRestart');
+
+  grid.innerHTML = deck.map((c, i) => `<div class="mem-card" data-idx="${i}" data-icon="${c.icon}"></div>`).join('');
+  const cards = grid.querySelectorAll('.mem-card');
+
+  cards.forEach((card) => card.addEventListener('click', () => {
+    if (lock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+    card.classList.add('flipped');
+    card.textContent = card.dataset.icon;
+    flipped.push(card);
+    if (flipped.length === 2) {
+      moves++;
+      scoreEl.textContent = `Movimientos: ${moves}`;
+      lock = true;
+      const [a, b] = flipped;
+      if (a.dataset.icon === b.dataset.icon) {
+        a.classList.add('matched'); b.classList.add('matched');
+        matched += 2;
+        flipped = []; lock = false;
+        if (matched === cards.length) {
+          setTimeout(() => {
+            scoreEl.textContent = `¡Ganaste en ${moves} movimientos! 🎉`;
+            restartBtn.style.display = '';
+          }, 300);
+        }
+      } else {
+        setTimeout(() => {
+          a.classList.remove('flipped'); a.textContent = '';
+          b.classList.remove('flipped'); b.textContent = '';
+          flipped = []; lock = false;
+        }, 700);
+      }
+    }
+  }));
+
+  restartBtn.addEventListener('click', () => renderMemoryGame(stage));
+}
+
+function renderReflexGame(stage) {
+  let state = 'idle';
+  let timeoutId = null;
+  let startTime = 0;
+  let best = Number(localStorage.getItem('reflexBest') || 0) || null;
+
+  stage.innerHTML = `
+    <div class="game-box">
+      <div class="game-msg">Hacé clic en el círculo apenas aparezca la pelota. ¡No te adelantes!</div>
+      <div class="game-score" id="rxScore">${best ? 'Mejor tiempo: ' + best + ' ms' : 'Todavía sin marca'}</div>
+      <div class="rx-box" id="rxBox">Hacé clic para empezar</div>
+    </div>
+  `;
+  const box = document.getElementById('rxBox');
+  const scoreEl = document.getElementById('rxScore');
+
+  box.addEventListener('click', () => {
+    if (state === 'idle' || state === 'done') {
+      state = 'waiting';
+      box.classList.remove('ready');
+      box.textContent = 'Esperá...';
+      const delay = 1000 + Math.random() * 2500;
+      timeoutId = setTimeout(() => {
+        state = 'ready';
+        startTime = performance.now();
+        box.classList.add('ready');
+        box.innerHTML = '<span class="ball">⚽</span>';
+      }, delay);
+    } else if (state === 'waiting') {
+      clearTimeout(timeoutId);
+      state = 'done';
+      box.classList.remove('ready');
+      box.textContent = '¡Te adelantaste! Hacé clic para probar de nuevo';
+    } else if (state === 'ready') {
+      const reaction = Math.round(performance.now() - startTime);
+      state = 'done';
+      box.classList.remove('ready');
+      box.textContent = `¡${reaction} ms! Hacé clic para probar de nuevo`;
+      if (!best || reaction < best) {
+        best = reaction;
+        localStorage.setItem('reflexBest', String(best));
+      }
+      scoreEl.textContent = 'Mejor tiempo: ' + best + ' ms';
+    }
+  });
+}
+
+function renderTicTacToe(stage) {
+  const board = Array(9).fill(null);
+  let over = false;
+  stage.innerHTML = `
+    <div class="game-box">
+      <div class="game-msg">Vos sos Messi (10), la máquina es Cristiano (7).</div>
+      <div class="game-score" id="tttScore">Tu turno</div>
+      <div class="ttt-grid" id="tttGrid"></div>
+      <button class="game-btn primary" id="tttRestart" type="button" style="display:none">Jugar de nuevo</button>
+    </div>
+  `;
+  const grid = document.getElementById('tttGrid');
+  const scoreEl = document.getElementById('tttScore');
+  const restartBtn = document.getElementById('tttRestart');
+  grid.innerHTML = board.map((_, i) => `<div class="ttt-cell" data-idx="${i}"></div>`).join('');
+  const cells = grid.querySelectorAll('.ttt-cell');
+
+  const LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+  function winner(b) {
+    for (const [a, c, d] of LINES) {
+      if (b[a] && b[a] === b[c] && b[a] === b[d]) return b[a];
+    }
+    return b.every(Boolean) ? 'empate' : null;
+  }
+  function cpuMove() {
+    const empty = board.map((v, i) => (v ? null : i)).filter((v) => v !== null);
+    for (const i of empty) { board[i] = 'C'; if (winner(board) === 'C') return i; board[i] = null; }
+    for (const i of empty) { board[i] = 'M'; if (winner(board) === 'M') { board[i] = null; return i; } board[i] = null; }
+    if (board[4] === null) return 4;
+    const corners = [0, 2, 6, 8].filter((i) => board[i] === null);
+    if (corners.length) return corners[Math.floor(Math.random() * corners.length)];
+    return empty[Math.floor(Math.random() * empty.length)];
+  }
+  function paint() {
+    cells.forEach((cell, i) => {
+      cell.textContent = board[i] === 'M' ? '10' : (board[i] === 'C' ? '7' : '');
+      cell.className = 'ttt-cell' + (board[i] === 'M' ? ' m' : board[i] === 'C' ? ' c' : '');
+    });
+  }
+  function endGame(w) {
+    over = true;
+    scoreEl.textContent = w === 'M' ? '🎉 ¡Ganaste! GOAT confirmado.' : (w === 'C' ? '😅 Ganó la máquina (Cristiano).' : '🤝 Empate.');
+    restartBtn.style.display = '';
+  }
+  cells.forEach((cell) => cell.addEventListener('click', () => {
+    const i = Number(cell.dataset.idx);
+    if (over || board[i]) return;
+    board[i] = 'M';
+    paint();
+    let w = winner(board);
+    if (w) { endGame(w); return; }
+    const cpuI = cpuMove();
+    if (cpuI !== undefined) board[cpuI] = 'C';
+    paint();
+    w = winner(board);
+    if (w) { endGame(w); return; }
+    scoreEl.textContent = 'Tu turno';
+  }));
+
+  restartBtn.addEventListener('click', () => renderTicTacToe(stage));
+}
+
 
 function renderStats() {
   const grid = document.getElementById('statsGrid');
@@ -697,7 +939,7 @@ function renderStats() {
 }
 
 renderGoals();
-renderYoutubeApprox();
+initGames();
 renderStats();
 
 // --- Votación de hinchas (Firebase Realtime Database) ---
