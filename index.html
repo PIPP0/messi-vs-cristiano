@@ -2748,12 +2748,16 @@ function getDocTop(el) {
 }
 function syncChatColHeight() {
   const chatCol = document.querySelector('.chat-col');
+  const grid = document.querySelector('.page-grid');
   const cardsEl = document.querySelector('.cards');
-  if (!chatCol || !cardsEl) return;
+  if (!chatCol || !grid || !cardsEl) return;
   if (window.innerWidth <= 1200) { chatCol.style.height = ''; return; }
-  const chatTop = getDocTop(chatCol);
+  // chat-col es sticky: su propio offsetTop puede reflejar la posición "pegada"
+  // tras hacer scroll. Usamos el contenedor de la grilla (no sticky) como
+  // referencia del inicio de la fila, ya que align-items:start los alinea igual.
+  const rowTop = getDocTop(grid);
   const cardsBottom = getDocTop(cardsEl) + cardsEl.offsetHeight;
-  const h = Math.max(320, cardsBottom - chatTop);
+  const h = Math.max(320, cardsBottom - rowTop);
   chatCol.style.height = h + 'px';
 }
 window.addEventListener('resize', syncChatColHeight);
