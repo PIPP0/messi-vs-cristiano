@@ -242,6 +242,13 @@
   .game-card-name{font-weight:800;font-size:1.05rem;position:relative}
   .game-card-desc{font-size:.78rem;color:var(--muted);line-height:1.4;position:relative}
   .game-card-cta{font-size:.72rem;font-weight:800;background:linear-gradient(120deg,var(--messi-accent),var(--cr7-accent));-webkit-background-clip:text;background-clip:text;color:transparent;margin-top:2px;position:relative}
+  .game-card-signin-btn{
+    position:relative;margin-top:4px;background:#fff;color:#1a1a2e;border:none;border-radius:9px;
+    padding:8px 16px;font-size:.72rem;font-weight:800;cursor:pointer;font-family:inherit;
+    box-shadow:0 3px 10px rgba(0,0,0,.25);transition:transform .15s ease;
+  }
+  .game-card-signin-btn:hover{transform:translateY(-1px)}
+  .game-card-signin-btn:disabled{opacity:.7;cursor:default;transform:none}
   .game-stage{min-height:260px;padding:8px 16px 22px}
   .game-box{text-align:center}
   .game-msg{font-size:.8rem;color:var(--muted);margin:0 0 12px;max-width:460px;margin-left:auto;margin-right:auto}
@@ -493,18 +500,20 @@
       </div>
             <div class="games-section reveal">
         <div class="games-grid" id="gamesGrid">
-          <button class="game-card" data-game="penales" type="button">
+          <div class="game-card" data-game="penales" role="button" tabindex="0">
             <span class="game-card-icon">🥅</span>
             <span class="game-card-name">Penales Pro</span>
             <span class="game-card-desc">Arrastrá para apuntar, dosificá la potencia y el efecto, y superá a un arquero con IA que aprende tu juego.</span>
             <span class="game-card-cta">Jugar ahora →</span>
-          </button>
-          <button class="game-card" data-game="gambeta" type="button">
+            <button class="game-card-signin-btn" type="button" style="display:none">Iniciar sesión con Google</button>
+          </div>
+          <div class="game-card" data-game="gambeta" role="button" tabindex="0">
             <span class="game-card-icon">🏃</span>
             <span class="game-card-name">Gambeta Callejera</span>
             <span class="game-card-desc">Corré sin parar, saltá y agachate para esquivar defensores. La velocidad sube y cada pelota suma puntos.</span>
             <span class="game-card-cta">Jugar ahora →</span>
-          </button>
+            <button class="game-card-signin-btn" type="button" style="display:none">Iniciar sesión con Google</button>
+          </div>
         </div>
       </div>
 
@@ -804,11 +813,51 @@ function initGames() {
     activeGame = null;
     if (authUnsub) { authUnsub(); authUnsub = null; }
   }
-  cards.forEach((card) => card.addEventListener('click', () => openGame(card.dataset.game)));
+  cards.forEach((card) => {
+    card.addEventListener('click', () => openGame(card.dataset.game));
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openGame(card.dataset.game); }
+    });
+    const signBtn = card.querySelector('.game-card-signin-btn');
+    if (signBtn) {
+      signBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const bridge = window.__gameBridge;
+        if (!bridge || bridge.unavailable) return;
+        signBtn.disabled = true;
+        signBtn.textContent = 'Abriendo inicio de sesión...';
+        bridge.signIn().catch(() => {
+          signBtn.disabled = false;
+          signBtn.textContent = 'Iniciar sesión con Google';
+        });
+      });
+    }
+  });
   closeBtn.addEventListener('click', closeGame);
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) closeGame();
   });
+
+  function updateCardAuthUI(loggedIn) {
+    cards.forEach((card) => {
+      const cta = card.querySelector('.game-card-cta');
+      const signBtn = card.querySelector('.game-card-signin-btn');
+      if (cta) cta.style.display = loggedIn ? '' : 'none';
+      if (signBtn) signBtn.style.display = loggedIn ? 'none' : '';
+    });
+  }
+  let cardAuthUnsub = null;
+  function watchAuthForCards() {
+    const bridge = window.__gameBridge;
+    if (!bridge) { setTimeout(watchAuthForCards, 400); return; }
+    if (bridge.unavailable) { updateCardAuthUI(true); return; }
+    if (!cardAuthUnsub) {
+      cardAuthUnsub = bridge.onAuthChange((user) => updateCardAuthUI(!!user));
+    }
+    if (bridge.authResolved) updateCardAuthUI(!!bridge.getUser());
+    else setTimeout(watchAuthForCards, 300);
+  }
+  watchAuthForCards();
 }
 
 
@@ -2690,6 +2739,28 @@ function setupScrollReveal() {
   targets.forEach(el => observer.observe(el));
 }
 setupScrollReveal();
+
+// --- Igualar la altura del chat con la de las cards de goles ---
+function getDocTop(el) {
+  let top = 0;
+  while (el) { top += el.offsetTop; el = el.offsetParent; }
+  return top;
+}
+function syncChatColHeight() {
+  const chatCol = document.querySelector('.chat-col');
+  const cardsEl = document.querySelector('.cards');
+  if (!chatCol || !cardsEl) return;
+  if (window.innerWidth <= 1200) { chatCol.style.height = ''; return; }
+  const chatTop = getDocTop(chatCol);
+  const cardsBottom = getDocTop(cardsEl) + cardsEl.offsetHeight;
+  const h = Math.max(320, cardsBottom - chatTop);
+  chatCol.style.height = h + 'px';
+}
+window.addEventListener('resize', syncChatColHeight);
+window.addEventListener('load', syncChatColHeight);
+setTimeout(syncChatColHeight, 50);
+setTimeout(syncChatColHeight, 600);
+setTimeout(syncChatColHeight, 1800);
 </script>
 </body>
 </html>
