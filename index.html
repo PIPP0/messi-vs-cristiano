@@ -264,6 +264,10 @@
   .gmb-char-btn{background:var(--panel2);border:2px solid rgba(255,255,255,.12);border-radius:10px;padding:6px 14px;font-size:.78rem;font-weight:700;color:var(--text);cursor:pointer;font-family:inherit}
   .gmb-char-btn.active{border-color:var(--messi-accent);background:linear-gradient(120deg,var(--messi-bg1),var(--cr7-bg1))}
   .gmb-charsel.locked .gmb-char-btn{opacity:.5;pointer-events:none}
+  .gmb-stage-bar{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:8px;font-size:.74rem;font-weight:700;color:var(--muted)}
+  .gmb-stage-bar span{white-space:nowrap}
+  .gmb-meta-track{flex:1;max-width:200px;height:8px;border-radius:5px;background:rgba(255,255,255,.1);overflow:hidden}
+  .gmb-meta-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--messi-accent),var(--cr7-accent));transition:width .15s linear}
 
 
   /* Interesting stats grid */
@@ -1489,17 +1493,21 @@ function renderGambetaGame(stage, opts) {
   opts = opts || {};
   stage.innerHTML = `
     <div class="game-box">
-      <div class="game-msg">Elegí tu jugador. Espacio / tocá el campo para saltar. Flecha abajo (mantené presionada) para agacharte. Esquivá a los defensores y sumá pelotas.</div>
+      <div class="game-msg">Saltá (Espacio, flecha arriba o tocá la pantalla) para esquivar a los rivales. Aguantá cada etapa hasta llegar a la meta. ¡Son 10 etapas, cada una más rápida que la anterior!</div>
       ${typeof opts.remaining === 'number' ? `<p class="trivia-saving">Partidas restantes hoy: ${opts.remaining}/${opts.maxPlays || 3}</p>` : ''}
       <div class="gmb-charsel" id="gmbCharSel">
         <button class="gmb-char-btn active" data-char="messi" type="button">10 Messi</button>
         <button class="gmb-char-btn" data-char="cr7" type="button">7 Cristiano</button>
       </div>
-      <div class="game-score" id="gmbScore">Puntos: 0 · Mejor: 0</div>
+      <div class="gmb-stage-bar">
+        <span id="gmbStageLabel">Etapa 1/10</span>
+        <div class="gmb-meta-track"><div class="gmb-meta-fill" id="gmbMetaFill"></div></div>
+        <span>🚩 Meta</span>
+      </div>
+      <div class="game-score" id="gmbScore">Etapas superadas: 0 · Mejor: 0/10</div>
       <canvas class="gmb-canvas" id="gmbCanvas" width="560" height="240"></canvas>
       <div class="gmb-controls">
         <button class="game-btn" id="gmbJumpBtn" type="button">⬆️ Saltar</button>
-        <button class="game-btn" id="gmbDuckBtn" type="button">⬇️ Agachar</button>
       </div>
       <div class="game-result2" id="gmbResult"></div>
       <button class="game-btn primary" id="gmbRestart" type="button" style="display:none">Jugar de nuevo</button>
@@ -1512,23 +1520,33 @@ function renderGambetaGame(stage, opts) {
   const restartBtn = document.getElementById('gmbRestart');
   const charSelEl = document.getElementById('gmbCharSel');
   const jumpBtn = document.getElementById('gmbJumpBtn');
-  const duckBtn = document.getElementById('gmbDuckBtn');
+  const stageLabelEl = document.getElementById('gmbStageLabel');
+  const metaFillEl = document.getElementById('gmbMetaFill');
   const W = 560, H = 240, GROUND_Y = 190, GRAVITY = 0.9, PLAYER_X = 90;
-  let best = Number(localStorage.getItem('gambetaBest') || 0);
+  const STAGE_COUNT = 10;
+  const stageDurationFrames = (n) => (8 + n) * 60;
+  const stageSpeed = (n) => 4.2 + (n - 1) * 0.42;
+  let best = Number(localStorage.getItem('gambetaBestStage') || 0);
   let charKey = 'messi';
   let state = 'idle';
-  let jumpOffset = 0, velY = 0, onGround = true, ducking = false, legPhase = 0;
-  let speed = 4.2, distance = 0, bonus = 0;
-  let obstacles = [], collectibles = [], dustParticles = [], collectParticles = [];
-  let spawnTimer = 90, collectSpawnTimer = 70;
+  let jumpOffset = 0, velY = 0, onGround = true, legPhase = 0;
+  let level = 1, elapsedFrames = 0, speed = stageSpeed(1), distance = 0;
+  let obstacles = [], dustParticles = [];
+  let spawnTimer = 90;
+  let banner = '', bannerTimer = 0;
   let lastTime = null;
 
-  function currentScore() { return Math.floor(distance / 10) + bonus; }
-  function updateScoreText() { scoreEl.textContent = `Puntos: ${currentScore()} · Mejor: ${best}`; }
+  function updateScoreText() {
+    const completed = Math.max(0, Math.min(level - 1, STAGE_COUNT));
+    scoreEl.textContent = `Etapas superadas: ${completed} · Mejor: ${best}/${STAGE_COUNT}`;
+    stageLabelEl.textContent = `Etapa ${Math.min(level, STAGE_COUNT)}/${STAGE_COUNT}`;
+    const pct = state === 'victory' ? 100 : Math.min(100, (elapsedFrames / stageDurationFrames(level)) * 100);
+    metaFillEl.style.width = pct + '%';
+  }
   updateScoreText();
 
   function startJump() {
-    if (!onGround || ducking) return;
+    if (!onGround) return;
     onGround = false; velY = 13.5;
   }
   function physicsStep(dt) {
@@ -1539,31 +1557,19 @@ function renderGambetaGame(stage, opts) {
     }
   }
   function playerBBox() {
-    const h = (ducking && onGround) ? 26 : 46;
     const footY = GROUND_Y - jumpOffset;
-    return { x: PLAYER_X - 13, y: footY - h, w: 26, h };
+    return { x: PLAYER_X - 13, y: footY - 46, w: 26, h: 46 };
   }
   function obstacleBBox(o) {
-    if (o.type === 'ground') return { x: o.x - 13, y: GROUND_Y - 34, w: 26, h: 34 };
-    return { x: o.x - 16, y: GROUND_Y - 53, w: 32, h: 14 };
+    return { x: o.x - 13, y: GROUND_Y - 34, w: 26, h: 34 };
   }
   function aabb(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 
   function spawnObstacle() {
-    const type = Math.random() < 0.62 ? 'ground' : 'bar';
-    obstacles.push({ x: W + 20, type, passed: false });
-  }
-  function maybeSpawnCollectible() {
-    const big = Math.random() < 0.5;
-    collectibles.push({ x: W + 20, y: big ? GROUND_Y - 75 : GROUND_Y - 22, big, collected: false });
+    obstacles.push({ x: W + 20 });
   }
   function spawnDust() {
     dustParticles.push({ x: PLAYER_X - 12, y: GROUND_Y - 2, vx: -1.5 - Math.random(), vy: -0.3, life: 20, maxLife: 20 });
-  }
-  function spawnCollectBurst(x, y) {
-    for (let i = 0; i < 8; i++) {
-      collectParticles.push({ x, y, vx: (Math.random() - 0.5) * 4, vy: -Math.random() * 3 - 1, life: 22, maxLife: 22, color: '#fcbf49' });
-    }
   }
 
   function checkCollisions() {
@@ -1571,45 +1577,57 @@ function renderGambetaGame(stage, opts) {
     for (const o of obstacles) {
       if (Math.abs(o.x - PLAYER_X) < 60 && aabb(pb, obstacleBBox(o))) { gameOver(); return; }
     }
-    const cy = pb.y + pb.h / 2;
-    collectibles.forEach((c) => {
-      if (c.collected) return;
-      const dist = Math.hypot(PLAYER_X - c.x, cy - c.y);
-      if (dist < 22) { c.collected = true; bonus += c.big ? 15 : 5; spawnCollectBurst(c.x, c.y); }
-    });
   }
 
   function gameOver() {
     state = 'gameover';
-    const finalScore = currentScore();
-    const isRecord = finalScore > best;
-    if (isRecord) { best = finalScore; localStorage.setItem('gambetaBest', String(best)); }
-    const points = Math.min(Math.floor(finalScore / 2), 50);
-    resultEl.textContent = `💥 ¡Te chocaste con un defensor! Puntaje: ${finalScore}${isRecord && finalScore > 0 ? ' · ¡Nuevo récord!' : ''}${points > 0 ? ` · +${points} puntos al ranking.` : ''}`;
+    const completed = level - 1;
+    const isRecord = completed > best;
+    if (isRecord) { best = completed; localStorage.setItem('gambetaBestStage', String(best)); }
+    const points = completed * 10;
+    resultEl.textContent = `💥 Perdiste en la etapa ${level} de ${STAGE_COUNT}. Etapas superadas: ${completed}${isRecord && completed > 0 ? ' · ¡Nuevo récord!' : ''}${points > 0 ? ` · +${points} puntos al ranking.` : ''}`;
     restartBtn.style.display = '';
     updateScoreText();
-    if (opts.onFinish) opts.onFinish(points, 50);
+    if (opts.onFinish) opts.onFinish(points, 100);
+  }
+
+  function victory() {
+    state = 'victory';
+    const isRecord = STAGE_COUNT > best;
+    if (isRecord) { best = STAGE_COUNT; localStorage.setItem('gambetaBestStage', String(best)); }
+    resultEl.textContent = `🏆 ¡Completaste las ${STAGE_COUNT} etapas! +100 puntos al ranking.${isRecord ? ' · ¡Nuevo récord!' : ''}`;
+    restartBtn.style.display = '';
+    updateScoreText();
+    if (opts.onFinish) opts.onFinish(100, 100);
+  }
+
+  function advanceStage() {
+    if (level >= STAGE_COUNT) { victory(); return; }
+    level++;
+    elapsedFrames = 0;
+    obstacles = [];
+    spawnTimer = 90;
+    speed = stageSpeed(level);
+    banner = `¡Etapa ${level}!`;
+    bannerTimer = 70;
+    updateScoreText();
   }
 
   function update(dt) {
     physicsStep(dt);
     legPhase += speed * 0.09 * dt;
     distance += speed * dt;
-    speed = Math.min(9.5, 4.2 + distance * 0.0007);
+    elapsedFrames += dt;
     spawnTimer -= speed * dt;
     if (spawnTimer <= 0) { spawnObstacle(); spawnTimer = Math.max(55, 150 - speed * 6) + Math.random() * 45; }
-    collectSpawnTimer -= dt;
-    if (collectSpawnTimer <= 0) { maybeSpawnCollectible(); collectSpawnTimer = 60 + Math.random() * 60; }
     obstacles.forEach((o) => { o.x -= speed * dt; });
-    collectibles.forEach((c) => { c.x -= speed * dt; });
     obstacles = obstacles.filter((o) => o.x > -50);
-    collectibles = collectibles.filter((c) => c.x > -30);
     if (onGround && Math.random() < 0.15 * dt) spawnDust();
     dustParticles.forEach((p) => { p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; });
     dustParticles = dustParticles.filter((p) => p.life > 0);
-    collectParticles.forEach((p) => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 0.2 * dt; p.life -= dt; });
-    collectParticles = collectParticles.filter((p) => p.life > 0);
+    if (bannerTimer > 0) bannerTimer -= dt;
     checkCollisions();
+    if (state === 'running' && elapsedFrames >= stageDurationFrames(level)) advanceStage();
     if (state === 'running') updateScoreText();
   }
 
@@ -1675,22 +1693,10 @@ function renderGambetaGame(stage, opts) {
 
   function drawObstacle(o) {
     const opp = jerseyFor(charKey === 'messi' ? 'cr7' : 'messi');
-    if (o.type === 'ground') {
-      drawHumanoid(ctx, o.x, GROUND_Y, 0.95, {
-        bodyRot: 0.25, legL: -0.4, legR: 0.55, armL: -0.7, armR: 0.9, crouch: 0.05,
-        jerseyA: opp.a, jerseyB: opp.b
-      });
-    } else {
-      ctx.save();
-      ctx.translate(o.x, GROUND_Y - 46);
-      const grad = ctx.createLinearGradient(-16, 0, 16, 0);
-      grad.addColorStop(0, '#f4b400'); grad.addColorStop(0.5, '#222'); grad.addColorStop(1, '#f4b400');
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      if (ctx.roundRect) ctx.roundRect(-16, -7, 32, 14, 7); else ctx.rect(-16, -7, 32, 14);
-      ctx.fill();
-      ctx.restore();
-    }
+    drawHumanoid(ctx, o.x, GROUND_Y, 0.95, {
+      bodyRot: 0.25, legL: -0.4, legR: 0.55, armL: -0.7, armR: 0.9, crouch: 0.05,
+      jerseyA: opp.a, jerseyB: opp.b
+    });
   }
 
   function drawPlayer(now) {
@@ -1699,8 +1705,6 @@ function renderGambetaGame(stage, opts) {
     let params;
     if (!onGround) {
       params = { bodyRot: -0.06, armL: -0.9, armR: 0.7, legL: 0.55, legR: -0.35, crouch: 0.05 };
-    } else if (ducking) {
-      params = { bodyRot: 0.18, armL: -0.5, armR: 0.5, legL: 0.3, legR: -0.3, crouch: 0.55 };
     } else if (state === 'running') {
       params = {
         bodyRot: 0, armL: -Math.sin(legPhase) * 0.9, armR: Math.sin(legPhase) * 0.9,
@@ -1722,22 +1726,21 @@ function renderGambetaGame(stage, opts) {
     });
     ctx.globalAlpha = 1;
     obstacles.forEach((o) => drawObstacle(o));
-    collectibles.forEach((c) => {
-      if (c.collected) return;
-      const bob = Math.sin(now / 220 + c.x) * 3;
-      drawSoccerBall(ctx, c.x, c.y + bob, c.big ? 9 : 6.5, now / 260);
-    });
     drawPlayer(now);
-    collectParticles.forEach((p) => {
-      ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
-      ctx.fillStyle = p.color; ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
-    });
     ctx.globalAlpha = 1;
     if (state === 'idle') {
       ctx.fillStyle = 'rgba(255,255,255,.85)';
       ctx.font = '600 14px inherit';
       ctx.textAlign = 'center';
-      ctx.fillText('Saltá o agachate para arrancar', W / 2, 40);
+      ctx.fillText('Saltá para arrancar', W / 2, 40);
+    }
+    if (bannerTimer > 0) {
+      ctx.globalAlpha = Math.min(1, bannerTimer / 70);
+      ctx.fillStyle = '#fcbf49';
+      ctx.font = '800 22px inherit';
+      ctx.textAlign = 'center';
+      ctx.fillText(banner, W / 2, 55);
+      ctx.globalAlpha = 1;
     }
   }
 
@@ -1764,24 +1767,16 @@ function renderGambetaGame(stage, opts) {
   });
   function onKeyDown(e) {
     if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); tryStart(); startJump(); }
-    else if (e.code === 'ArrowDown') { e.preventDefault(); tryStart(); if (onGround) ducking = true; }
   }
-  function onKeyUp(e) { if (e.code === 'ArrowDown') ducking = false; }
   document.addEventListener('keydown', onKeyDown);
-  document.addEventListener('keyup', onKeyUp);
   canvas.addEventListener('pointerdown', () => { tryStart(); startJump(); });
   jumpBtn.addEventListener('click', () => { tryStart(); startJump(); });
-  duckBtn.addEventListener('pointerdown', () => { tryStart(); if (onGround) ducking = true; });
-  duckBtn.addEventListener('pointerup', () => { ducking = false; });
-  duckBtn.addEventListener('pointerleave', () => { ducking = false; });
 
   restartBtn.addEventListener('click', () => {
     document.removeEventListener('keydown', onKeyDown);
-    document.removeEventListener('keyup', onKeyUp);
     if (opts.onRestart) opts.onRestart(); else renderGambetaGame(stage, opts);
   });
 }
-
 function renderStats() {
   const grid = document.getElementById('statsGrid');
   grid.innerHTML = '';
